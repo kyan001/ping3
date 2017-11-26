@@ -8,6 +8,7 @@ import select
 import time
 import threading
 
+__version__ = '1.0.0'
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -103,7 +104,7 @@ def send_one_ping(my_socket, dest_addr, ID):
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
-def do_one(dest_addr, timeout=4):
+def ping(dest_addr, timeout=4):
     """
     Send one ping to destination address with the given timeout.
 
@@ -138,7 +139,7 @@ def verbose_ping(dest_addr, timeout=4, count=4):
     for i in range(count):
         print("ping '{}' ... ".format(dest_addr), end='')
         try:
-            delay = do_one(dest_addr, timeout)
+            delay = ping(dest_addr, timeout)
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e[1]))
             break
