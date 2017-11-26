@@ -1,22 +1,39 @@
-# python3-ping
-A pure python3 version of ICMP ping implementation using raw socket.
+# Ping3
+
+Ping3 is a pure python3 version of ICMP ping implementation using raw socket.  
 Note that ICMP messages can only be sent from processes running as root.
 
-> The Python2 version originally from http://github.com/samuel/python-ping
-> This version maintained at https://github.com/kyan001/python3-ping
+> The Python2 version originally from [here](http://github.com/samuel/python-ping)  
+> This version maintained at [this github repo](https://github.com/kyan001/python3-ping)
 
-Usage:
+
+## Installation
+
+```shell
+pip install ping3
+```
+
+
+## Get Started
+
 ```py
->>> import ping
->>> ping.do_one('example.com')  # Ping once. Returns delay in seconds.
-0.030867429659792833
+>>> from ping3 import ping, verbose_ping
+>>> ping('example.com')  # Returns delay in seconds.
+0.215697261510079666
 
->>> ping.do_one('not-exist.com', timeout=4)  # Set timeout in seconds. Default is 4.
-# If timed out, returns None
+>>> verbose_ping('example.com')  # ping 4 times in a row.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+```
 
->>> ping.verbose('example.com')  # ping 4 times in a row. Default timeout=4, count=4
-ping 'example.com' ... 6ms
-ping 'example.com' ... 7ms
-ping 'example.com' ... 5ms
-ping 'example.com' ... 5ms
+
+## Functions
+
+```py
+>>> ping('not-exist.com')  # If timed out (no reply), returns None
+>>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4
+>>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4
+>>> verbose_ping('example.com', count=10)  # ping 10 times. Default count=4
 ```
