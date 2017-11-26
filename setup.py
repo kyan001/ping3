@@ -26,6 +26,7 @@ setup(
     keywords='python3 ping icmp socket tool',
     packages=find_packages(exclude=['contrib', 'docs', 'tests']),
     py_modules=["ping3"],
+    python_requires='>=3',
     install_requires=[],
     extras_require={},
     package_data={},
