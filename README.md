@@ -32,7 +32,8 @@ ping 'example.com' ... 217ms
 ## Functions
 
 ```py
->>> ping('not-exist.com')  # If timed out (no reply), returns None
+>>> ping('notexist.com')  # If timed out (no reply), returns None
+None
 >>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4
 >>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4
 >>> verbose_ping('example.com', count=10)  # ping 10 times. Default count=4
