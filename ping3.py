@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import os
 import sys
 import socket
 import struct
@@ -8,7 +7,7 @@ import select
 import time
 import threading
 
-__version__ = '1.0.0'
+__version__ = '1.0.1'
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -88,7 +87,8 @@ def send_one_ping(my_socket, dest_addr, ID):
     # Header is type (8), code (8), checksum (16), id (16), sequence (16)
     my_checksum = 0
 
-    # Make a dummy heder with a 0 checksum.
+    # Make a dummy header with a 0 checksum.
+    # ID: Low-endian identifier, bbHHh: network byte order
     header = struct.pack("bbHHh", ICMP_ECHO_REQUEST, 0, my_checksum, ID, 1)
     bytesInDouble = struct.calcsize("d")
     data = (192 - bytesInDouble) * "Q"
