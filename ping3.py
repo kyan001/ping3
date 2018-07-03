@@ -7,7 +7,7 @@ import select
 import time
 import threading
 
-__version__ = '1.0.2'
+__version__ = '1.1.0'
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
