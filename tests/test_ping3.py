@@ -9,7 +9,7 @@ import ping3
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = '1.0.0'
+    __version__ = '1.1.0'
 
     def setUp(self):
         pass
@@ -28,6 +28,11 @@ class test_ping3(unittest.TestCase):
         delay = ping3.ping('example.com', timeout=0.0001)
         self.assertIsNone(delay)
 
+    def test_ping_unit(self):
+        delay = ping3.ping('example.com', unit="ms")
+        self.assertIsInstance(delay, float)
+        self.assertTrue(delay > 1)
+
     def test_verbose_ping_normal(self):
         with patch('sys.stdout', new=io.StringIO()) as fake_out:
             ping3.verbose_ping('example.com')
@@ -35,7 +40,7 @@ class test_ping3(unittest.TestCase):
 
     def test_verbose_ping_timeout(self):
         with patch('sys.stdout', new=io.StringIO()) as fake_out:
-            ping3.verbose_ping('example.com', timeout=0.001)
+            ping3.verbose_ping('example.com', timeout=0.0001)
             self.assertRegex(fake_out.getvalue(), r'.*Timeout \> [0-9\.]+s.*')
 
     def test_verbose_ping_count(self):
