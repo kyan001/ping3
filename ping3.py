@@ -104,23 +104,28 @@ def send_one_ping(my_socket, dest_addr, ID):
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
-def ping(dest_addr, timeout=4):
+def ping(dest_addr, timeout=4, unit="s"):
     """
     Send one ping to destination address with the given timeout.
 
     Args:
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
+        unit: Str. The unit of returned value. Default is "s" for seconds, "ms" for milliseconds.
 
     Returns:
-        The delay (in seconds) or None on timeout.
+        The delay in seconds/milliseconds or None on timeout.
     """
     icmp_protocol = socket.getprotobyname("icmp")
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp_protocol)
     my_ID = threading.current_thread().ident & 0xFFFF
     send_one_ping(my_socket, dest_addr, my_ID)
-    delay = receive_one_ping(my_socket, my_ID, timeout)
+    delay = receive_one_ping(my_socket, my_ID, timeout)  # in seconds
     my_socket.close()
+    if delay is None:
+        return None
+    if unit == "ms":
+        delay *= 1000  # in milliseconds
     return delay
 
 
@@ -143,7 +148,6 @@ def verbose_ping(dest_addr, timeout=4, count=4):
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
-
         if delay is None:
             print("Timeout > {}s".format(timeout))
         else:
