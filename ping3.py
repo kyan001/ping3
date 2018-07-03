@@ -7,7 +7,7 @@ import select
 import time
 import threading
 
-__version__ = '1.0.1'
+__version__ = '1.0.2'
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -141,7 +141,7 @@ def verbose_ping(dest_addr, timeout=4, count=4):
         try:
             delay = ping(dest_addr, timeout)
         except socket.gaierror as e:
-            print("Failed. (socket error: '{}')".format(e[1]))
+            print("Failed. (socket error: '{}')".format(e))
             break
 
         if delay is None:
