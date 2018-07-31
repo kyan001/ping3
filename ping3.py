@@ -112,6 +112,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None):
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         unit: Str. The unit of returned value. Default is "s" for seconds, "ms" for milliseconds.
+        src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
@@ -139,6 +140,7 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         count: Int. How many pings should be sent. Default is 4, same as Windows CMD.
+        src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
 
     Returns:
         Formatted ping results printed.
