@@ -104,7 +104,7 @@ def send_one_ping(my_socket, dest_addr, ID):
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
-def ping(dest_addr, timeout=4, unit="s"):
+def ping(dest_addr, timeout=4, unit="s", src_addr=None):
     """
     Send one ping to destination address with the given timeout.
 
@@ -112,12 +112,15 @@ def ping(dest_addr, timeout=4, unit="s"):
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         unit: Str. The unit of returned value. Default is "s" for seconds, "ms" for milliseconds.
+        src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
     """
     icmp_protocol = socket.getprotobyname("icmp")
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp_protocol)
+    if src_addr:
+        my_socket.bind((src_addr, 0))
     my_ID = threading.current_thread().ident & 0xFFFF
     send_one_ping(my_socket, dest_addr, my_ID)
     delay = receive_one_ping(my_socket, my_ID, timeout)  # in seconds
@@ -129,7 +132,7 @@ def ping(dest_addr, timeout=4, unit="s"):
     return delay
 
 
-def verbose_ping(dest_addr, timeout=4, count=4):
+def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
     """
     Send pings to destination address with the given timeout and display the result.
 
@@ -137,14 +140,19 @@ def verbose_ping(dest_addr, timeout=4, count=4):
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         count: Int. How many pings should be sent. Default is 4, same as Windows CMD.
+        src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
 
     Returns:
         Formatted ping results printed.
     """
     for i in range(count):
-        print("ping '{}' ... ".format(dest_addr), end='')
+        print("ping '{}' ".format(dest_addr), end='')
+        if src_addr:
+            print("from '{}' ...".format(src_addr), end='')
+        else:
+            print("... ", end='')
         try:
-            delay = ping(dest_addr, timeout)
+            delay = ping(dest_addr, timeout, src_addr)
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
