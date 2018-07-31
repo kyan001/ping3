@@ -104,7 +104,7 @@ def send_one_ping(my_socket, dest_addr, ID):
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
-def ping(dest_addr, timeout=4, unit="s"):
+def ping(dest_addr, timeout=4, unit="s", src_addr=None):
     """
     Send one ping to destination address with the given timeout.
 
@@ -118,6 +118,8 @@ def ping(dest_addr, timeout=4, unit="s"):
     """
     icmp_protocol = socket.getprotobyname("icmp")
     my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp_protocol)
+    if src_addr:
+        my_socket.bind((src_addr, 0))
     my_ID = threading.current_thread().ident & 0xFFFF
     send_one_ping(my_socket, dest_addr, my_ID)
     delay = receive_one_ping(my_socket, my_ID, timeout)  # in seconds
