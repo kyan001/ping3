@@ -165,4 +165,4 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
 
 if __name__ == '__main__':
     verbose_ping("example.com")
-    verbose_ping("192.168.1.1")
+    verbose_ping("8.8.8.8")
