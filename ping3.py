@@ -146,11 +146,10 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
         Formatted ping results printed.
     """
     for i in range(count):
-        print("ping '{}' ".format(dest_addr), end='')
-        if src_addr:
-            print("from '{}' ...".format(src_addr), end='')
-        else:
-            print("... ", end='')
+        output_text = "ping '{}'".format(dest_addr)
+        output_text += " from '{}'".format(src_addr) if src_addr else ""
+        output_text += " ... "
+        print(output_text, end='')
         try:
             delay = ping(dest_addr, timeout, src_addr)
         except socket.gaierror as e:
