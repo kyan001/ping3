@@ -131,7 +131,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None):
     return delay
 
 
-def verbose_ping(dest_addr, timeout=4, count=4):
+def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
     """
     Send pings to destination address with the given timeout and display the result.
 
@@ -144,9 +144,13 @@ def verbose_ping(dest_addr, timeout=4, count=4):
         Formatted ping results printed.
     """
     for i in range(count):
-        print("ping '{}' ... ".format(dest_addr), end='')
+        print("ping '{}' ".format(dest_addr), end='')
+        if src_addr:
+            print("from '{}' ...".format(src_addr), end='')
+        else:
+            print("... ", end='')
         try:
-            delay = ping(dest_addr, timeout)
+            delay = ping(dest_addr, timeout, src_addr)
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
