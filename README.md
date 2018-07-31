@@ -6,13 +6,11 @@ Note that ICMP messages can only be sent from processes running as root.
 > The Python2 version originally from [here](http://github.com/samuel/python-ping)
 > This version maintained at [this github repo](https://github.com/kyan001/python3-ping)
 
-
 ## Installation
 
 ```shell
 pip install ping3
 ```
-
 
 ## Get Started
 
@@ -28,20 +26,38 @@ ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 ```
 
-
 ## Functions
 
 ```py
 >>> ping('notexist.com')  # If timed out (no reply), returns None
 None
 
->>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4
+>>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4 for 4 seconds.
 0.215697261510079666
 
->>> ping('example.com', unit="ms")  # Returns delay in milliseconds
+>>> ping('example.com', unit='ms')  # Returns delay in milliseconds. Default unit='s' for seconds.
 215.9627876281738
 
->>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4
+>>> ping('example.com', src_addr='192.168.1.15')  # set source ip address for multiple interfaces. Default src_addr=None for no binding.
+0.215697261510079666
 
->>> verbose_ping('example.com', count=10)  # ping 10 times. Default count=4
+>>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4 for 4 seconds.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+>>> verbose_ping('example.com', count=6)  # ping 6 times. Default count=4
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+
+>>> verbose_ping('example.com', src_addr='192.168.1.15')  # ping from source IP address. Default src_addr=None
+ping 'example.com' from '192.168.1.15' ... 215ms
+ping 'example.com' from '192.168.1.15' ... 216ms
+ping 'example.com' from '192.168.1.15' ... 219ms
+ping 'example.com' from '192.168.1.15' ... 217ms
 ```
