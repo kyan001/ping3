@@ -151,7 +151,7 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
         output_text += " ... "
         print(output_text, end='')
         try:
-            delay = ping(dest_addr, timeout, src_addr)
+            delay = ping(dest_addr, timeout=timeout, src_addr=src_addr)
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
