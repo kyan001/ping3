@@ -148,7 +148,7 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
         output_text = "ping '{}'".format(dest_addr)
         output_text += " from '{}'".format(src_addr) if src_addr else ""
         output_text += " ... "
-        print(output_text, end='')
+        print(output_text, end="")
         try:
             delay = ping(dest_addr, timeout=timeout, src_addr=src_addr)
         except socket.gaierror as e:
@@ -162,6 +162,6 @@ def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
     print
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     verbose_ping("example.com")
     verbose_ping("8.8.8.8")
