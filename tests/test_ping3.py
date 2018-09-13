@@ -11,7 +11,7 @@ import ping3
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = '1.2.1'
+    __version__ = "1.3.1"
 
     def setUp(self):
         pass
@@ -53,6 +53,11 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_count(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", count=1)
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    def test_verbose_ping_unit(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.verbose_ping("example.com", unit="ms")
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_verbose_ping_bind(self):
