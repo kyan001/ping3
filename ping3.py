@@ -117,8 +117,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None):
     Returns:
         The delay in seconds/milliseconds or None on timeout.
     """
-    icmp_protocol = socket.getprotobyname("icmp")
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp_protocol)
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
     if src_addr:
         my_socket.bind((src_addr, 0))
     my_ID = threading.current_thread().ident & 0xFFFF
