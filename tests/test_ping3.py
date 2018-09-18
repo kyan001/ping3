@@ -11,7 +11,7 @@ import ping3
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "1.3.1"
+    __version__ = "1.4.1"
 
     def setUp(self):
         pass
@@ -40,6 +40,13 @@ class test_ping3(unittest.TestCase):
         delay = ping3.ping("example.com", src_addr=my_ip)
         self.assertIsInstance(delay, float)
 
+    def test_ping_ttl(self):
+        import time
+        delay = ping3.ping("example.com", ttl=64)
+        self.assertIsInstance(delay, float)
+        delay = ping3.ping("example.com", ttl=1)
+        self.assertIsNone(delay)
+
     def test_verbose_ping_normal(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com")
@@ -65,6 +72,12 @@ class test_ping3(unittest.TestCase):
             my_ip = socket.gethostbyname(socket.gethostname())
             ping3.verbose_ping("example.com", src_addr=my_ip)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    def test_verbose_ping_ttl(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.verbose_ping("example.com", ttl=1)
+            self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
+
 
 
 if __name__ == "__main__":
