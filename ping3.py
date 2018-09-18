@@ -158,7 +158,7 @@ def verbose_ping(dest_addr, count=4, *args, **kwargs):
             print("Failed. (socket error: '{}')".format(e))
             break
         if delay is None:
-            print("Timeout > {}s".format(timeout))
+            print("Timeout > {}s".format(timeout) if timeout else "Timeout")
         else:
             print("{value}{unit}".format(value=int(delay), unit=unit))
     print
