@@ -7,7 +7,7 @@ import select
 import time
 import threading
 
-__version__ = '1.2.1'
+__version__ = "1.3.1"
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -117,8 +117,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
     Returns:
         The delay in seconds/milliseconds or None on timeout.
     """
-    icmp_protocol = socket.getprotobyname("icmp")
-    my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, icmp_protocol)
+    my_socket = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
     my_socket.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
     if src_addr:
         my_socket.bind((src_addr, 0))
@@ -133,37 +132,38 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
     return delay
 
 
-def verbose_ping(dest_addr, timeout=4, count=4, src_addr=None):
+def verbose_ping(dest_addr, count=4, *args, **kwargs):
     """
     Send pings to destination address with the given timeout and display the result.
 
     Args:
         dest_addr: Str. The destination address. Ex. "192.168.1.1"/"example.com"
-        timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         count: Int. How many pings should be sent. Default is 4, same as Windows CMD.
-        src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
+        *: And all the other arguments available in ping().
 
     Returns:
         Formatted ping results printed.
     """
+    timeout = kwargs.get("timeout")
+    src_addr = kwargs.get("src_addr")
+    unit = kwargs.setdefault("unit", "ms")
     for i in range(count):
         output_text = "ping '{}'".format(dest_addr)
         output_text += " from '{}'".format(src_addr) if src_addr else ""
         output_text += " ... "
-        print(output_text, end='')
+        print(output_text, end="")
         try:
-            delay = ping(dest_addr, timeout=timeout, src_addr=src_addr)
+            delay = ping(dest_addr, *args, **kwargs)
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
         if delay is None:
             print("Timeout > {}s".format(timeout))
         else:
-            delay = delay * 1000
-            print("{}ms".format(int(delay)))
+            print("{value}{unit}".format(value=int(delay), unit=unit))
     print
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     verbose_ping("example.com")
     verbose_ping("8.8.8.8")
