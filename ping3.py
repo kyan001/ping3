@@ -7,7 +7,7 @@ import select
 import time
 import threading
 
-__version__ = "1.3.1"
+__version__ = "1.4.1"
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
@@ -113,6 +113,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
         timeout: Int. Timeout in seconds. Default is 4s, same as Windows CMD.
         unit: Str. The unit of returned value. Default is "s" for seconds, "ms" for milliseconds.
         src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
+        ttl: Int. The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS.
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
