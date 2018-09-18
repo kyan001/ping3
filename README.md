@@ -41,6 +41,9 @@ None
 >>> ping('example.com', src_addr='192.168.1.15')  # set source ip address for multiple interfaces. Default src_addr=None for no binding.
 0.215697261510079666
 
+>>> ping('example.com', ttl=5)  # set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl=64.
+None
+
 >>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4 for 4 seconds.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
@@ -66,4 +69,10 @@ ping 'example.com' ... 1s
 ping 'example.com' ... 2s
 ping 'example.com' ... 1s
 ping 'example.com' ... 1s
+
+>>> verbose_ping('example.com', ttl=5)  # Set TTL to 5. Default is 64.
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
 ```
