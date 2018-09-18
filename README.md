@@ -60,4 +60,10 @@ ping 'example.com' from '192.168.1.15' ... 215ms
 ping 'example.com' from '192.168.1.15' ... 216ms
 ping 'example.com' from '192.168.1.15' ... 219ms
 ping 'example.com' from '192.168.1.15' ... 217ms
+
+>>> verbose_ping('example.com', unit='s')  # Displays delay in seconds. Default unit="ms" for milliseconds.
+ping 'example.com' ... 1s
+ping 'example.com' ... 2s
+ping 'example.com' ... 1s
+ping 'example.com' ... 1s
 ```
