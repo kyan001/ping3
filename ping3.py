@@ -7,7 +7,7 @@ import select
 import time
 import threading
 
-from IcmpEnum import IcmpEnum
+from IcmpTypes import IcmpTypes
 from exception import *
 
 __version__ = "1.4.1"
@@ -68,14 +68,14 @@ def receive_one_ping(my_socket, ID, timeout):
         # Filters out the echo request itself.
         # This can be tested by pinging 127.0.0.1
         # You'll see your own request
-        if type != IcmpEnum.ECHO_REQUEST and packetID == ID:
-            if type == IcmpEnum.ECHO_REPLY:
+        if type != IcmpTypes.ECHO_REQUEST and packetID == ID:
+            if type == IcmpTypes.ECHO_REPLY:
                 bytesInDouble = struct.calcsize("d")
                 timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
                 return timeReceived - timeSent
-            elif type == IcmpEnum.TIME_EXCEEDED:
+            elif type == IcmpTypes.TIME_EXCEEDED:
                 raise ExceededTimeToLiveException
-            elif type == IcmpEnum.DESTINATION_UNREACHABLE:
+            elif type == IcmpTypes.DESTINATION_UNREACHABLE:
                 raise DestinationUnreachableException
 
         timeLeft = timeLeft - howLongInSelect
@@ -94,7 +94,7 @@ def send_one_ping(my_socket, dest_addr, ID):
 
     # Make a dummy header with a 0 checksum.
     # ID: Low-endian identifier, bbHHh: network byte order
-    header = struct.pack("bbHHh", IcmpEnum.ECHO_REQUEST, 0, my_checksum, ID, 1)
+    header = struct.pack("bbHHh", IcmpTypes.ECHO_REQUEST, 0, my_checksum, ID, 1)
     bytesInDouble = struct.calcsize("d")
     data = (192 - bytesInDouble) * "Q"
     data = struct.pack("d", default_timer()) + data.encode()
@@ -104,7 +104,7 @@ def send_one_ping(my_socket, dest_addr, ID):
 
     # Now that we have the right checksum, we put that in. It's just easier
     # to make up a new header than to stuff it into the dummy.
-    header = struct.pack("bbHHh", IcmpEnum.ECHO_REQUEST, 0, socket.htons(my_checksum), ID, 1)
+    header = struct.pack("bbHHh", IcmpTypes.ECHO_REQUEST, 0, socket.htons(my_checksum), ID, 1)
     packet = header + data
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
