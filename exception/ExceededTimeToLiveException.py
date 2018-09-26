@@ -1,2 +1,0 @@
-class ExceededTimeToLiveException(Exception):
-    pass

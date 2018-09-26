@@ -1,2 +1,0 @@
-class DestinationUnreachableException(Exception):
-    pass
