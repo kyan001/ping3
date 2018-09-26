@@ -8,9 +8,11 @@ import time
 import threading
 
 import icmp
-import exception
+import _exception
 
 __version__ = "1.4.1"
+
+exception = _exception
 
 if sys.platform == "win32":
     # On Windows, the best timer is time.clock()
