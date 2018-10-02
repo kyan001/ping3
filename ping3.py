@@ -49,17 +49,21 @@ def checksum(source_string):
     return answer
 
 
-def receive_one_ping(my_socket, ID, timeout):
+def receive_one_ping(my_socket, ID, timeout, use_exception):
     """
     receive the ping from the socket.
     """
     timeLeft = timeout
-    while True:
+
+    while timeLeft > 0:
         startedSelect = default_timer()
         whatReady = select.select([my_socket], [], [], timeLeft)
-        howLongInSelect = (default_timer() - startedSelect)
-        if not whatReady[0]:  # Timeout
-            raise exception.TimeoutException
+        timeLeft = timeLeft - (default_timer() - startedSelect)
+        if not whatReady[0]:
+            if use_exception:
+                raise exception.TimeoutException
+            else:
+                return None
 
         timeReceived = default_timer()
         recPacket, addr = my_socket.recvfrom(1024)
@@ -76,13 +80,20 @@ def receive_one_ping(my_socket, ID, timeout):
                 timeSent = struct.unpack("d", recPacket[28:28 + bytesInDouble])[0]
                 return timeReceived - timeSent
             elif type == icmp.TIME_EXCEEDED:
-                raise exception.ExceededTimeToLiveException
+                if use_exception:
+                    raise exception.TimeToLiveExceededException(addr)
+                else:
+                    return None
             elif type == icmp.DESTINATION_UNREACHABLE:
-                raise exception.DestinationUnreachableException
+                if use_exception:
+                    raise exception.DestinationUnreachableException
+                else:
+                    return None
 
-        timeLeft = timeLeft - howLongInSelect
-        if timeLeft <= 0:
-            return
+    if use_exception:
+        raise exception.TimeoutException
+    else:
+        return None
 
 
 def send_one_ping(my_socket, dest_addr, ID):
@@ -111,7 +122,7 @@ def send_one_ping(my_socket, dest_addr, ID):
     my_socket.sendto(packet, (dest_addr, 1))  # Don't know about the 1
 
 
-def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
+def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64, use_exception=False):
     """
     Send one ping to destination address with the given timeout.
 
@@ -121,6 +132,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
         unit: Str. The unit of returned value. Default is "s" for seconds, "ms" for milliseconds.
         src_addr: Str. The IP address to ping from. Ex. "192.168.1.20"
         ttl: Int. The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS.
+        use_exception: If the function should raise an exception when error, rather than returning None.
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
@@ -131,7 +143,7 @@ def ping(dest_addr, timeout=4, unit="s", src_addr=None, ttl=64):
         my_socket.bind((src_addr, 0))
     my_ID = threading.current_thread().ident & 0xFFFF
     send_one_ping(my_socket, dest_addr, my_ID)
-    delay = receive_one_ping(my_socket, my_ID, timeout)  # in seconds
+    delay = receive_one_ping(my_socket, my_ID, timeout, use_exception)  # in seconds
     my_socket.close()
     if delay is None:
         return None
@@ -152,7 +164,6 @@ def verbose_ping(dest_addr, count=4, *args, **kwargs):
     Returns:
         Formatted ping results printed.
     """
-    timeout = kwargs.get("timeout")
     src_addr = kwargs.get("src_addr")
     unit = kwargs.setdefault("unit", "ms")
     for i in range(count):
@@ -161,17 +172,17 @@ def verbose_ping(dest_addr, count=4, *args, **kwargs):
         output_text += " ... "
         print(output_text, end="")
         try:
-            delay = ping(dest_addr, *args, **kwargs)
+            delay = ping(dest_addr, use_exception=True, *args, **kwargs)
+            print("{value}{unit}".format(value=int(delay), unit=unit))
         except socket.gaierror as e:
             print("Failed. (socket error: '{}')".format(e))
             break
-        if delay is None:
-            print("Timeout > {}s".format(timeout) if timeout else "Timeout")
-        else:
-            print("{value}{unit}".format(value=int(delay), unit=unit))
+        except (exception.TimeoutException, exception.TimeToLiveExceededException,
+                exception.DestinationUnreachableException) as e:
+            print(e)
     print()
 
 
 if __name__ == "__main__":
-    verbose_ping("example.com")
+    verbose_ping("google.com")
     verbose_ping("8.8.8.8")
