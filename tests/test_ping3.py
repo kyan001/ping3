@@ -12,7 +12,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.0.1"
+    __version__ = "2.0.2"
 
     def setUp(self):
         pass
@@ -60,14 +60,14 @@ class test_ping3(unittest.TestCase):
         delay = ping3.ping("example.com", size=100)
         self.assertIsInstance(delay, float)
         with self.assertRaises(OSError):
-            ping3.ping("example.com", size=9999)  # most router has 1480 MTU, which is IP_Header(20) + ICMP_Header(8) + ICMP_Payload(1452)
+            ping3.ping("example.com", size=99999)  # most router has 1480 MTU, which is IP_Header(20) + ICMP_Header(8) + ICMP_Payload(1452)
 
     def test_verbose_ping_size(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", size=100)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
             with self.assertRaises(OSError):
-                ping3.ping("example.com", size=9999)
+                ping3.ping("example.com", size=99999)
 
     def test_ping_unit(self):
         delay = ping3.ping("example.com", unit="ms")
@@ -93,22 +93,22 @@ class test_ping3(unittest.TestCase):
     def test_ping_ttl(self):
         delay = ping3.ping("example.com", ttl=64)
         self.assertIsInstance(delay, float)
-        delay = ping3.ping("example.com", ttl=1)
+        delay = ping3.ping("example.com", ttl=0)
         self.assertIsNone(delay)
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises(errors.TimeToLiveExpired):
-                ping3.ping("example.com", ttl=1)
+                ping3.ping("example.com", ttl=0)
 
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping("example.com", ttl=1)
+            ping3.verbose_ping("example.com", ttl=0)
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_verbose_ping_ttl_exception(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping("example.com", ttl=1)
+            ping3.verbose_ping("example.com", ttl=0)
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_ping_hostunknown(self):
