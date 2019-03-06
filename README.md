@@ -101,7 +101,6 @@ Cannot resolve not.exist.com: Unknown host
 [DEBUG] Cannot resolve not.exist.com: Unknown host
 
 >>> ping3.ping("example.com", ttl=1)
-...
 [DEBUG] Time exceeded: Time To Live expired
 ```
 
@@ -114,14 +113,11 @@ Raise exceptions when there are errors instead of return None
 >>> ping3.EXCEPTIONS = True  # Default is False.
 
 >>> ping3.ping("example.com", timeout=0.0001)  # All Exceptions are subclasses of PingError
-...
 pingerror.Timeout: Request timeout for ICMP packet. (0.0001s)
 
 >>> ping3.ping("not.exist.com")
-...
 pingerror.HostUnknown: Cannot resolve not.exist.com: Unknown host
 
 >>> ping3.ping("example.com", ttl=1)
-...
 pingerror.TimeToLiveExpired: Time exceeded: Time To Live expired
 ```
