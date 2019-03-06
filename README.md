@@ -1,10 +1,12 @@
 # Ping3
 
 Ping3 is a pure python3 version of ICMP ping implementation using raw socket.
+
 Note that ICMP messages can only be sent from processes running as root.
 
-> The Python2 version originally from [here](http://github.com/samuel/python-ping)
-> This version maintained at [this github repo](https://github.com/kyan001/python3-ping)
+> The Python2 version originally from [here](http://github.com/samuel/python-ping).
+>
+> This version maintained at [this github repo](https://github.com/kyan001/python3-ping).
 
 ## Installation
 
