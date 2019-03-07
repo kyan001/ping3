@@ -10,7 +10,7 @@ import threading
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.0.3"
+__version__ = "2.1.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 
@@ -172,7 +172,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
         if src_addr:
             sock.bind((src_addr, 0))
-        icmp_id = threading.current_thread().ident & 0xFFFF
+        icmp_id = threading.current_thread().ident % 0xFFFF
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
