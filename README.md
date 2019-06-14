@@ -29,7 +29,7 @@ ping 'example.com' ... 217ms
 ```
 
 ```shell
-$ python -m ping3 example.com  # Verbose ping.
+$ ping3 example.com  # Verbose ping.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -146,19 +146,19 @@ pingerror.TimeToLiveExpired: Time exceeded: Time To Live expired
 Execute ping3 from command-line.
 
 ```shell
-$ python -m ping3 -h  # -h/--help. Command-line help message.
-"COMMAND LINE USAGE"
+$ ping3 --help  # -h/--help. Command-line help message.
+$ python -m ping3 --help  # Same as 'ping3'. 'ping3' is an alias for 'python -m ping3'
 
-$ python -m ping3 -v  # -v/--version. Show ping3 version number.
+$ ping3 -v  # -v/--version. Show ping3 version number.
 2.2.1
 
-$ python -m ping3 example.com  # Verbose ping.
+$ ping3 example.com  # Verbose ping.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
-$ python -m ping3 example.com 8.8.8.8  # Verbose ping all the addresses.
+$ ping3 example.com 8.8.8.8  # Verbose ping all the addresses.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -168,22 +168,22 @@ ping '8.8.8.8' ... 2ms
 ping '8.8.8.8' ... 6ms
 ping '8.8.8.8' ... 5ms
 
-$ python -m ping3 -c 1 example.com  # -c/--count. How many pings should be sent. Default is 4.
+$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent. Default is 4.
 ping 'example.com' ... 215ms
 
-$ python -m ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
+$ ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
-$ python -m ping3 -t 5 example.com  # -t/--ttl. # Set TTL to 5. Default is 64.
+$ ping3 -t 5 example.com  # -t/--ttl. # Set TTL to 5. Default is 64.
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 
-$ python -m ping3 -l 56 example.com  # -l/--load. Set ICMP packet payload to 56 bytes. Default is 56.
+$ ping3 -l 56 example.com  # -l/--load. Set ICMP packet payload to 56 bytes. Default is 56.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
