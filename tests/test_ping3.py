@@ -12,7 +12,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.1.0"
+    __version__ = "2.2.1"
 
     def setUp(self):
         pass
@@ -132,7 +132,45 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_count(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", count=1)
+            self.assertEqual(fake_out.getvalue().count("\n"), 1)
+
+    def test_command_line_exec_no_addr(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec()
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    def test_command_line_exec_1_addr(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(["127.0.0.1"])
+            self.assertTrue("127.0.0.1" in fake_out.getvalue())
+
+    def test_command_line_exec_2_addrs(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(["127.0.0.1", "8.8.8.8"])
+            self.assertTrue("127.0.0.1" in fake_out.getvalue())
+            self.assertTrue("8.8.8.8" in fake_out.getvalue())
+
+    def test_command_line_exec_count(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(['-c', '1', 'example.com'])
+            self.assertEqual(fake_out.getvalue().count("\n"), 1)
+
+    def test_command_line_exec_timeout(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(['-w', '0.0001', 'example.com'])
+            self.assertRegex(fake_out.getvalue(), r".*Timeout \> [0-9\.]+s.*")
+
+    def test_command_line_exec_ttl(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(['-t', '0', 'example.com'])
+            self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
+
+    def test_command_line_exec_size(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.command_line_exec(['-l', '100', 'example.com'])
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+            with self.assertRaises(OSError):
+                ping3.command_line_exec(['-l', '99999', 'example.com'])
 
 
 if __name__ == "__main__":

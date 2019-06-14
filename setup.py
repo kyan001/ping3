@@ -2,8 +2,8 @@ from setuptools import setup, find_packages
 
 setup(
     name='ping3',
-    version='2.1.0',
-    description='A pure python3 version of ICMP ping implementation using raw socket. ',
+    version='2.2.1',
+    description='A pure python3 version of ICMP ping implementation using raw socket.',
     long_description='Ping3 is a pure python3 version of ICMP ping implementation using raw socket. Note that ICMP messages can only be sent from processes running as root.',
     url='https://github.com/kyan001/ping3',
     author='Kai Yan',
