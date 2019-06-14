@@ -31,5 +31,7 @@ setup(
     extras_require={},
     package_data={},
     data_files=[],
-    entry_points={},
+    entry_points={
+        'console_scripts': ['ping3=command_line_ping3:main'],
+    },
 )
