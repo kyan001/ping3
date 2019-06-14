@@ -21,7 +21,15 @@ pip install ping3
 >>> ping('example.com')  # Returns delay in seconds.
 0.215697261510079666
 
->>> verbose_ping('example.com')  # ping 4 times in a row.
+>>> verbose_ping('example.com')  # Ping 4 times in a row.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+```
+
+```shell
+$ python -m ping3 example.com  # Verbose ping.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -31,6 +39,9 @@ ping 'example.com' ... 217ms
 ## Functions
 
 ```python
+>>> ping('example.com')  # Returns delay in seconds.
+0.215697261510079666
+
 >>> ping('not.exist.com')  # If timed out (no reply), returns None
 Cannot resolve not.exist.com: Unknown host
 
@@ -40,22 +51,28 @@ Cannot resolve not.exist.com: Unknown host
 >>> ping('example.com', unit='ms')  # Returns delay in milliseconds. Default unit='s' for seconds.
 215.9627876281738
 
->>> ping('example.com', src_addr='192.168.1.15')  # set source ip address for multiple interfaces. Default src_addr=None for no binding.
+>>> ping('example.com', src_addr='192.168.1.15')  # Set source ip address for multiple interfaces. Default src_addr=None for no binding.
 0.215697261510079666
 
->>> ping('example.com', ttl=5)  # set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl=64.
+>>> ping('example.com', ttl=5)  # Set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl=64.
 None
 
->>> ping('example.com', size=56)  # set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes.
+>>> ping('example.com', size=56)  # Set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes. Default size=56.
 0.215697261510079666
 
->>> verbose_ping('example.com', timeout=10)  # set timeout to 10 second. Default timeout=4 for 4 seconds.
+>>> verbose_ping('example.com')  # Ping 4 times in a row.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
->>> verbose_ping('example.com', count=6)  # ping 6 times. Default count=4
+>>> verbose_ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4 for 4 seconds.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+>>> verbose_ping('example.com', count=6)  # Ping 6 times. Default count=4
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -63,7 +80,7 @@ ping 'example.com' ... 217ms
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 
->>> verbose_ping('example.com', src_addr='192.168.1.15')  # ping from source IP address. Default src_addr=None
+>>> verbose_ping('example.com', src_addr='192.168.1.15')  # Ping from source IP address. Default src_addr=None
 ping 'example.com' from '192.168.1.15' ... 215ms
 ping 'example.com' from '192.168.1.15' ... 216ms
 ping 'example.com' from '192.168.1.15' ... 219ms
@@ -90,7 +107,7 @@ Show more info for developers.
 >>> import ping3
 >>> ping3.DEBUG = True  # Default is False.
 
->>> ping3.ping("example.com")  # ping() prints received IP header and ICMP header.
+>>> ping3.ping("example.com")  # "ping()" prints received IP header and ICMP header.
 [DEBUG] IP HEADER: {'version': 69, 'tos': 0, 'len': 14336, 'id': 8620, 'flags': 0, 'ttl': 51, 'protocol': 1, 'checksum': *, 'src_addr': *, 'dest_addr': *}
 [DEBUG] ICMP HEADER: {'type': 0, 'code': 0, 'checksum': 8890, 'id': 21952, 'seq': 0}
 0.215697261510079666
@@ -122,4 +139,53 @@ pingerror.HostUnknown: Cannot resolve not.exist.com: Unknown host
 
 >>> ping3.ping("example.com", ttl=1)
 pingerror.TimeToLiveExpired: Time exceeded: Time To Live expired
+```
+
+## Command Line Exexcution
+
+Execute ping3 from command-line.
+
+```shell
+$ python -m ping3 -h  # -h/--help. Command-line help message.
+"COMMAND LINE USAGE"
+
+$ python -m ping3 -v  # -v/--version. Show ping3 version number.
+2.2.1
+
+$ python -m ping3 example.com  # Verbose ping.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ python -m ping3 example.com 8.8.8.8  # Verbose ping all the addresses.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+ping '8.8.8.8' ... 5ms
+ping '8.8.8.8' ... 2ms
+ping '8.8.8.8' ... 6ms
+ping '8.8.8.8' ... 5ms
+
+$ python -m ping3 -c 1 example.com  # -c/--count. How many pings should be sent. Default is 4.
+ping 'example.com' ... 215ms
+
+$ python -m ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ python -m ping3 -t 5 example.com  # -t/--ttl. # Set TTL to 5. Default is 64.
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
+ping 'example.com' ... Timeout
+
+$ python -m ping3 -l 56 example.com  # -l/--load. Set ICMP packet payload to 56 bytes. Default is 56.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
 ```
