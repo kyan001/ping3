@@ -19,12 +19,6 @@ ICMP_HEADER_FORMAT = "!BBHHH"  # According to netinet/ip_icmp.h. !=network byte 
 ICMP_TIME_FORMAT = "!d"  # d=double
 
 
-if sys.platform == "win32":
-    default_timer = time.clock  # On Windows, the best timer is time.clock()
-else:
-    default_timer = time.time  # On most other platforms the best timer is time.time()
-
-
 def _debug(*args):
     if DEBUG:
         message = "[DEBUG]"
@@ -92,7 +86,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
     padding = (size - struct.calcsize(ICMP_TIME_FORMAT) - struct.calcsize(ICMP_HEADER_FORMAT)) * "Q"  # Using double to store current time.
-    icmp_payload = struct.pack(ICMP_TIME_FORMAT, default_timer()) + padding.encode()
+    icmp_payload = struct.pack(ICMP_TIME_FORMAT, time.time()) + padding.encode()
     real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
     # Don't know why I need socket.htons() on real_checksum since ICMP_HEADER_FORMAT already in Network Bytes Order (big-endian)
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, socket.htons(real_checksum), icmp_id, seq)  # Put real checksum into ICMP header.
@@ -129,7 +123,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         selected = select.select([sock], [], [], timeout)
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
-        time_recv = default_timer()
+        time_recv = time.time()
         recv_data, addr = sock.recvfrom(1024)
         ip_header_raw, icmp_header_raw, icmp_payload_raw = recv_data[ip_header_slice], recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
         ip_header = dict(zip(ip_header_keys, struct.unpack(IP_HEADER_FORMAT, ip_header_raw)))
