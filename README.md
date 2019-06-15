@@ -150,7 +150,7 @@ $ ping3 --help  # -h/--help. Command-line help message.
 $ python -m ping3 --help  # Same as 'ping3'. 'ping3' is an alias for 'python -m ping3'
 
 $ ping3 -v  # -v/--version. Show ping3 version number.
-2.2.1
+2.2.2
 
 $ ping3 example.com  # Verbose ping.
 ping 'example.com' ... 215ms

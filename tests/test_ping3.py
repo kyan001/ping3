@@ -12,7 +12,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.2.1"
+    __version__ = "2.2.2"
 
     def setUp(self):
         pass
@@ -93,22 +93,22 @@ class test_ping3(unittest.TestCase):
     def test_ping_ttl(self):
         delay = ping3.ping("example.com", ttl=64)
         self.assertIsInstance(delay, float)
-        delay = ping3.ping("example.com", ttl=0)
+        delay = ping3.ping("example.com", ttl=1)
         self.assertIsNone(delay)
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises(errors.TimeToLiveExpired):
-                ping3.ping("example.com", ttl=0)
+                ping3.ping("example.com", ttl=1)
 
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping("example.com", ttl=0)
+            ping3.verbose_ping("example.com", ttl=1)
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_verbose_ping_ttl_exception(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping("example.com", ttl=0)
+            ping3.verbose_ping("example.com", ttl=1)
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_verbose_ping_count(self):
