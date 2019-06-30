@@ -2,4 +2,4 @@ language: python
 script:
     - cd tests
     - sudo env "PATH=$PATH" python test_ping3.py
-    - sudo env "PATH=$PATH" python test_command_lin_ping3.py
+    - sudo env "PATH=$PATH" python test_command_line_ping3.py
