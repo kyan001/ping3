@@ -104,7 +104,7 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises(errors.TimeToLiveExpired):
+            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):
                 ping3.ping("example.com", ttl=1)
 
     def test_verbose_ping_ttl(self):
