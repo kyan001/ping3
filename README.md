@@ -139,18 +139,22 @@ Raise exceptions when there are errors instead of return None
 >>> ping3.EXCEPTIONS = True  # Default is False.
 
 >>> ping3.ping("example.com", timeout=0.0001)  # All Exceptions are subclasses of PingError
-pingerror.Timeout: Request timeout for ICMP packet. (0.0001s)
+[... Traceback ...]
+error.Timeout: Request timeout for ICMP packet. (0.0001s)
 
 >>> ping3.ping("not.exist.com")
-pingerror.HostUnknown: Cannot resolve not.exist.com: Unknown host
+[... Traceback ...]
+error.HostUnknown: Cannot resolve not.exist.com: Unknown host
 
 >>> ping3.ping("example.com", ttl=1)
-pingerror.TimeToLiveExpired: Time exceeded: Time To Live expired
+[... Traceback ...]
+error.TimeToLiveExpired: Time exceeded: Time To Live expired
 ```
 
 ## Command Line Exexcution
 
 Execute ping3 from command-line.
+Note: `ping3` needs `root` privilege to send/receive packets. You may want to use `sudo ping3`.
 
 ```shell
 $ ping3 --help  # -h/--help. Command-line help message.
@@ -195,4 +199,18 @@ ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
+
+$ ping3 --exceptions --wait 0.001 example.com  # EXCPETIONS mode is on when --exceptions shows up.
+[... Traceback ...]
+error.Timeout: Request timeout for ICMP packet. (0.0001s)
+
+$ ping3 --debug --wait 0.001 example.com  # DEBUG mode is on when --debug shows up.
+ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
+Timeout > 0.001s
+ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
+Timeout > 0.001s
+ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
+Timeout > 0.001s
+ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
+Timeout > 0.001s
 ```
