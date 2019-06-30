@@ -165,7 +165,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
         sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
         if src_addr:
-            sock.bind((src_addr, 0))
+            sock.bind((src_addr, 0))  # only packets send to src_addr are received.
         icmp_id = threading.current_thread().ident % 0xFFFF
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
