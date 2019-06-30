@@ -1,4 +1,5 @@
 # Ping3
+[![Build Status](https://travis-ci.org/kyan001/ping3.svg?branch=master)](https://travis-ci.org/kyan001/ping3)
 ![GitHub release](https://img.shields.io/github/release/kyan001/ping3.svg)
 [![GitHub license](https://img.shields.io/github/license/kyan001/ping3.svg)](https://github.com/kyan001/ping3/blob/master/LICENSE)
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/ping3.svg)
