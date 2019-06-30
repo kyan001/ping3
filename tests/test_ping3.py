@@ -83,7 +83,7 @@ class test_ping3(unittest.TestCase):
         my_ip = socket.gethostbyname(socket.gethostname())
         dest_addr = "example.com"
         if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
-            dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu)
+            dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
         delay = ping3.ping(dest_addr, src_addr=my_ip)
         self.assertIsInstance(delay, float)
 
@@ -92,7 +92,7 @@ class test_ping3(unittest.TestCase):
             my_ip = socket.gethostbyname(socket.gethostname())
             dest_addr = "example.com"
             if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
-                dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu)
+                dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
             ping3.verbose_ping(dest_addr, src_addr=my_ip)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
@@ -104,7 +104,7 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):
+            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.ping("example.com", ttl=1)
 
     def test_verbose_ping_ttl(self):
