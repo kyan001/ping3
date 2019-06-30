@@ -1,6 +1,4 @@
 language: python
-install:
-    - pip install -r requirements.pip
 script:
     - cd tests
     - sudo env "PATH=$PATH" python test_ping3.py
