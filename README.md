@@ -1,4 +1,7 @@
 # Ping3
+![GitHub release](https://img.shields.io/github/release/kyan001/ping3.svg)
+[![GitHub license](https://img.shields.io/github/license/kyan001/ping3.svg)](https://github.com/kyan001/ping3/blob/master/LICENSE)
+![PyPI - Downloads](https://img.shields.io/pypi/dm/ping3.svg)
 
 Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
 (Note that ICMP messages can only be sent from processes running as root.)
