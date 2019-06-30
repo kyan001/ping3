@@ -6,6 +6,7 @@ from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(sys.path[0]))
 import command_line_ping3  # noqa: linter (pycodestyle) should not lint this line.
+import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 
 class test_ping3(unittest.TestCase):
@@ -45,7 +46,7 @@ class test_ping3(unittest.TestCase):
 
     def test_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line_ping3.main(['-t', '0', 'example.com'])
+            command_line_ping3.main(['-t', '1', 'example.com'])
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_size(self):
@@ -54,6 +55,16 @@ class test_ping3(unittest.TestCase):
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
             with self.assertRaises(OSError):
                 command_line_ping3.main(['-l', '99999', 'example.com'])
+
+    def test_debug(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            command_line_ping3.main(['--debug', '-w', '0.0001', 'example.com'])
+            self.assertRegex(fake_out.getvalue(), r".*\[DEBUG\] Request timeout for ICMP packet\..*")
+
+    def test_exceptions(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            with self.assertRaises(errors.Timeout):
+                command_line_ping3.main(['--exceptions', '-w', '0.0001', 'example.com'])
 
 
 if __name__ == "__main__":
