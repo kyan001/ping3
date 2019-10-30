@@ -81,7 +81,6 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     try:
         dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
     except socket.gaierror as e:
-        print("Cannot resolve {}: Unknown host".format(dest_addr))
         raise errors.HostUnknown(dest_addr) from e
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
