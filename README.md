@@ -50,8 +50,11 @@ pip uninstall ping3  # uninstall ping3
 >>> ping('example.com')  # Returns delay in seconds.
 0.215697261510079666
 
->>> ping('not.exist.com')  # If timed out (no reply), returns None
-Cannot resolve not.exist.com: Unknown host
+>>> ping('not.exist.com')  # if host unknown (cannot resolve), returns False
+False
+
+>>> ping("224.0.0.0")  # If timed out (no reply), returns None
+None
 
 >>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4 for 4 seconds.
 0.215697261510079666
@@ -121,14 +124,16 @@ Show more info for developers.
 0.215697261510079666
 
 >>> ping3.ping("example.com", timeout=0.0001)
-[DEBUG] Request timeout for ICMP packet. (0.0001s)
+[DEBUG] Request timeout for ICMP packet. (Timeout = 0.0001s)
+None
 
 >>> ping3.ping("not.exist.com")
-Cannot resolve not.exist.com: Unknown host
-[DEBUG] Cannot resolve not.exist.com: Unknown host
+[DEBUG] Cannot resolve: Unknown host. (Host = not.exist.com)
+False
 
 >>> ping3.ping("example.com", ttl=1)
-[DEBUG] Time exceeded: Time To Live expired
+[DEBUG] Time exceeded: Time To Live expired.
+None
 ```
 
 ### EXCEPTIONS mode
@@ -141,15 +146,15 @@ Raise exceptions when there are errors instead of return None
 
 >>> ping3.ping("example.com", timeout=0.0001)  # All Exceptions are subclasses of PingError
 [... Traceback ...]
-error.Timeout: Request timeout for ICMP packet. (0.0001s)
+error.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
 >>> ping3.ping("not.exist.com")
 [... Traceback ...]
-error.HostUnknown: Cannot resolve not.exist.com: Unknown host
+error.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
 
 >>> ping3.ping("example.com", ttl=1)
 [... Traceback ...]
-error.TimeToLiveExpired: Time exceeded: Time To Live expired
+error.TimeToLiveExpired: Time exceeded: Time To Live expired.
 ```
 
 ## Command Line Exexcution
@@ -203,15 +208,15 @@ ping 'example.com' ... 217ms
 
 $ ping3 --exceptions --wait 0.001 example.com  # EXCPETIONS mode is on when --exceptions shows up.
 [... Traceback ...]
-error.Timeout: Request timeout for ICMP packet. (0.0001s)
+error.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
 $ ping3 --debug --wait 0.001 example.com  # DEBUG mode is on when --debug shows up.
-ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
-Timeout > 0.001s
-ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
-Timeout > 0.001s
-ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
-Timeout > 0.001s
-ping 'example.com' ... [DEBUG] Request timeout for ICMP packet. (0.001s)
-Timeout > 0.001s
+[DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
+ping 'example.com' ... Timeout > 0.001s
+[DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
+ping 'example.com' ... Timeout > 0.001s
+[DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
+ping 'example.com' ... Timeout > 0.001s
+[DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
+ping 'example.com' ... Timeout > 0.001s
 ```
