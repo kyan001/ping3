@@ -18,6 +18,8 @@ class HostUnknown(PingError):
 
 
 class Timeout(PingError):
-    def __init__(self, timeout):
-        message = "Request timeout for ICMP packet. ({}s)".format(timeout)
+    def __init__(self, timeout=None):
+        message = "Request timeout for ICMP packet."
+        if timeout is not None:
+            message += " (Timeout = {}s)".format(timeout)
         super().__init__(message)
