@@ -20,6 +20,11 @@ ICMP_TIME_FORMAT = "!d"  # d=double
 
 
 def _debug(*args):
+    """Print debug info to stdout if `ping3.DEBUG` is True.
+
+    Args:
+        *args: Any. Usually are strings or objects that can be converted to str.
+    """
     if DEBUG:
         message = "[DEBUG]"
         print(message, *args)
