@@ -25,6 +25,19 @@ def _debug(*args):
         print(message, *args)
 
 
+def _raise(err):
+    """Raise exception if `ping3.EXCEPTIONS` is True.
+
+    Args:
+        err: Exception.
+
+    Raise:
+        Exception: Exception passed in args will be raised if `ping3.EXCEPTIONS` is True.
+    """
+    if EXCEPTIONS:
+        raise err
+
+
 def ones_comp_sum16(num1: int, num2: int) -> int:
     """Calculates the 1's complement sum for 16-bit numbers.
 
@@ -171,8 +184,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
         except errors.PingError as e:
             _debug(e)
-            if EXCEPTIONS:
-                raise e
+            _raise(e)
             return None
         if delay is None:
             return None
