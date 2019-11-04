@@ -182,6 +182,10 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
+        except errors.HostUnknown as e:  # Unsolved
+            _debug(e)
+            _raise(e)
+            return False
         except errors.PingError as e:
             _debug(e)
             _raise(e)
