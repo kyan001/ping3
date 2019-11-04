@@ -125,8 +125,7 @@ class test_ping3(unittest.TestCase):
     def test_ping_hostunknown(self):
         not_exist_url = "not-exist.com"
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.ping(not_exist_url)
-            self.assertRegex(fake_out.getvalue(), r"Cannot resolve {}: Unknown host".format(not_exist_url))
+            self.assertFalse(ping3.ping(not_exist_url))
 
     def test_ping_hostunknown_exception(self):
         with patch("sys.stdout", new=io.StringIO()):
