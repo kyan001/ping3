@@ -200,8 +200,8 @@ def verbose_ping(dest_addr: str, count: int = 4, *args, **kwargs):
         output_text = "ping '{}'".format(dest_addr)
         output_text += " from '{}'".format(src) if src else ""
         output_text += " ... "
-        print(output_text, end="")
         delay = ping(dest_addr, seq=i, *args, **kwargs)
+        print(output_text, end="")
         if delay is None:
             print("Timeout > {}s".format(timeout) if timeout else "Timeout")
         else:
