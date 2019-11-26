@@ -96,10 +96,16 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     Raises:
         HostUnkown: If destination address is a domain name and cannot resolved.
     """
+    # Domain name will translated into IP address, and IP address leaves unchanged.
     try:
-        dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
-    except socket.gaierror as e:
-        raise errors.HostUnknown(dest_addr) from e
+        ipv4_addresses = socket.getaddrinfo(dest_addr, None, family=socket.AF_INET)
+        dest_addr = list(set(item[4][0] for item in ipv4_addresses))[0]
+    except socket.gaierror:
+        try:
+            ipv6_addresses = socket.getaddrinfo(dest_addr, None, family=socket.AF_INET6)
+            dest_addr = list(set(item[4][0] for item in ipv6_addresses))[0]
+        except socket.gaierror as e:
+            raise errors.HostUnknown(dest_addr) from e
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
     padding = (size - struct.calcsize(ICMP_TIME_FORMAT) - struct.calcsize(ICMP_HEADER_FORMAT)) * "Q"  # Using double to store current time.
