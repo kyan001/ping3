@@ -221,7 +221,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             if icmp_header['code'] == IcmpTimeExceededCode.TTL_EXPIRED:
                 raise errors.TimeToLiveExpired()  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
-        if icmp_header['id'] == icmp_id and icmp_header['seq'] == seq:  # ECHO_REPLY should match the
+        if icmp_header['id'] == icmp_id and icmp_header['seq'] == seq:  # ECHO_REPLY should match the id and seq field.
             if icmp_header['type'] == IcmpType.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
                 _debug("ECHO_REQUEST filtered out.")
                 continue
