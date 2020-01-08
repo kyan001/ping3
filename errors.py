@@ -11,6 +11,18 @@ class TimeToLiveExpired(TimeExceeded):
         super().__init__(message)
 
 
+class DestinationUnreachable(PingError):
+    pass
+
+
+class DestinationHostUnreachable(DestinationUnreachable):
+    def __init__(self, dest_addr=None):
+        message = "Destination unreachable: Host unreachable."
+        if dest_addr:
+            message += " (Host='{}')".format(dest_addr)
+        super().__init__(message)
+
+
 class HostUnknown(PingError):
     def __init__(self, dest_addr=None):
         message = "Cannot resolve: Unknown host."

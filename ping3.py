@@ -202,6 +202,8 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
     Raises:
         TimeToLiveExpired: If the Time-To-Live in IP Header is not large enough for destination.
         TimeExceeded: If time exceeded but Time-To-Live does not expired.
+        DestinationHostUnreachable: If the destination host is unreachable.
+        DestinationUnreachable: If the destination is unreachable.
     """
     ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
     icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
@@ -221,6 +223,10 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             if icmp_header['code'] == IcmpTimeExceededCode.TTL_EXPIRED:
                 raise errors.TimeToLiveExpired()  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
+        if icmp_header['type'] == IcmpType.DESTINATION_UNREACHABLE:  # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
+            if icmp_header['code'] == IcmpDestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
+                raise errors.DestinationHostUnreachable()
+            raise errors.DestinationUnreachable()
         if icmp_header['id'] == icmp_id and icmp_header['seq'] == seq:  # ECHO_REPLY should match the id and seq field.
             if icmp_header['type'] == IcmpType.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
                 _debug("ECHO_REQUEST filtered out.")
