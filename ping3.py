@@ -71,9 +71,10 @@ def _func_logger(func: callable) -> callable:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        formatted_args = ", ".join("'{}'".format(arg) if isinstance(arg, str) else arg for arg in args) if args else ""
-        formatted_kwargs = kwargs or ""
-        _debug("Function Called:", "{func.__name__}({fa}{fkw})".format(func=func, fa=formatted_args, fkw=formatted_kwargs))
+        pargs = ", ".join(["'{}'".format(arg) if isinstance(arg, str) else arg for arg in args])
+        kargs = str(kwargs) if kwargs else ""
+        all_args = ", ".join((pargs, kargs)) if (pargs and kargs) else (pargs or kargs)
+        _debug("Function Called:", "{func.__name__}({})".format(all_args, func=func))
         func_return = func(*args, **kwargs)
         _debug("Function Returned:", "{func.__name__} -> {rtrn}".format(func=func, rtrn=func_return))
         return func_return

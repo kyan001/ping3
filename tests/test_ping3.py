@@ -134,7 +134,7 @@ class test_ping3(unittest.TestCase):
                     ping3.ping("not-exist.com")
 
     def test_DEBUG(self):
-        with patch("ping3.DEBUG", True):
+        with patch("ping3.DEBUG", True), patch("sys.stderr", new=io.StringIO()):
             delay = ping3.ping("example.com")
             self.assertIsNotNone(ping3.LOGGER)
 
