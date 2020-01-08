@@ -4,7 +4,7 @@ import io
 import unittest
 from unittest.mock import patch
 
-sys.path.insert(0, os.path.dirname(sys.path[0]))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import command_line_ping3  # noqa: linter (pycodestyle) should not lint this line.
 import errors  # noqa: linter (pycodestyle) should not lint this line.
 
@@ -57,9 +57,9 @@ class test_ping3(unittest.TestCase):
                 command_line_ping3.main(['-l', '99999', 'example.com'])
 
     def test_debug(self):
-        with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line_ping3.main(['--debug', '-w', '0.0001', 'example.com'])
-            self.assertRegex(fake_out.getvalue(), r".*\[DEBUG\] Request timeout for ICMP packet\..*")
+        with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:
+            command_line_ping3.main(['--debug', '-c', '1', 'example.com'])
+            self.assertIn("[DEBUG] <Logger ping3 (DEBUG)>", fake_err.getvalue())
 
     def test_exceptions(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:

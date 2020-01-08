@@ -5,7 +5,7 @@ import unittest
 from unittest.mock import patch
 import socket
 
-sys.path.insert(0, os.path.dirname(sys.path[0]))
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ping3  # noqa: linter (pycodestyle) should not lint this line.
 import errors  # noqa: linter (pycodestyle) should not lint this line.
 
@@ -134,10 +134,9 @@ class test_ping3(unittest.TestCase):
                     ping3.ping("not-exist.com")
 
     def test_DEBUG(self):
-        with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            with patch("ping3.DEBUG", True):
-                delay = ping3.ping("example.com")
-                self.assertTrue("[DEBUG]" in fake_out.getvalue())
+        with patch("ping3.DEBUG", True):
+            delay = ping3.ping("example.com")
+            self.assertIsNotNone(ping3.LOGGER)
 
 
 if __name__ == "__main__":
