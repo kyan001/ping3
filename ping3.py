@@ -213,8 +213,12 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
     """
     ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
     icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
+    timeout_time = time.time() + timeout  # Exactly time when timeout.
+    _debug("Timeout time:", time.ctime(timeout_time))
     while True:
-        selected = select.select([sock], [], [], timeout)
+        timeout_left = timeout_time - time.time()  # How many seconds left until timeout.
+        _debug("Timeout left: {:.2f}s".format(timeout_left))
+        selected = select.select([sock, ], [], [], timeout_left)
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
         time_recv = time.time()
