@@ -12,7 +12,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.4.0"
+__version__ = "2.4.4"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -217,7 +217,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
     _debug("Timeout time:", time.ctime(timeout_time))
     while True:
         timeout_left = timeout_time - time.time()  # How many seconds left until timeout.
-        _debug("Timeout left: {:.2f}s".format(timeout_left))
+        _debug("Timeout left: {:.2f}s".format(timeout_left))  #
         selected = select.select([sock, ], [], [], timeout_left)
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
