@@ -36,7 +36,8 @@ def _debug(*args, **kwargs):
         cout_handler.setLevel(logging.DEBUG)
         cout_handler.setFormatter(formatter)
         logger.addHandler(cout_handler)
-        logger.debug(logger)
+        logger.debug("Version:", __version__)
+        logger.debug("LOGGER:", logger)
         return logger
 
     if not DEBUG:
