@@ -36,8 +36,8 @@ def _debug(*args, **kwargs):
         cout_handler.setLevel(logging.DEBUG)
         cout_handler.setFormatter(formatter)
         logger.addHandler(cout_handler)
-        logger.debug("Version:", __version__)
-        logger.debug("LOGGER:", logger)
+        logger.debug("Ping3 Version: {}".format(__version__))
+        logger.debug("LOGGER: {}".format(logger))
         return logger
 
     if not DEBUG:
