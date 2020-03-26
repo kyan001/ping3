@@ -59,7 +59,7 @@ class test_ping3(unittest.TestCase):
     def test_debug(self):
         with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:
             command_line_ping3.main(['--debug', '-c', '1', 'example.com'])
-            self.assertIn("[DEBUG] <Logger ping3 (DEBUG)>", fake_err.getvalue())
+            self.assertIn("[DEBUG]", fake_err.getvalue())
 
     def test_exceptions(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
