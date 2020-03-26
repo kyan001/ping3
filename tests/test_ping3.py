@@ -12,7 +12,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.4.5"
+    __version__ = "2.4.6"
 
     def setUp(self):
         pass
