@@ -277,7 +277,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         if src_addr:
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
-        icmp_id = threading.current_thread().ident % 0xFFFF
+        thread_id = threading.get_native_id() if hasattr(threading, 'get_native_id') else threading.currentThread().ident  # threading.get_native_id() is supported >= python3.8
+        icmp_id = checksum(str(thread_id).encode())  # using che
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
