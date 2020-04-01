@@ -177,7 +177,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     _debug("Destination Address:", dest_addr)
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
-    padding = (size - struct.calcsize(ICMP_TIME_FORMAT) - struct.calcsize(ICMP_HEADER_FORMAT)) * "Q"  # Using double to store current time.
+    padding = (size - struct.calcsize(ICMP_TIME_FORMAT)) * "Q"  # Using double to store current time.
     icmp_payload = struct.pack(ICMP_TIME_FORMAT, time.time()) + padding.encode()
     real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
     # Don't know why I need socket.htons() on real_checksum since ICMP_HEADER_FORMAT already in Network Bytes Order (big-endian)
@@ -264,7 +264,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         src_addr: The IP address to ping from. This is for multi-interface clients. Ex. "192.168.1.20". (default None)
         ttl: The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS. (default 64)
         seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)
-        size: The ICMP packet payload size in bytes. Default is 56, same as in macOS. (default 56)
+        size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
