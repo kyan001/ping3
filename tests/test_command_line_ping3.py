@@ -1,6 +1,7 @@
 import sys
 import os.path
 import io
+import time
 import unittest
 from unittest.mock import patch
 
@@ -55,6 +56,14 @@ class test_ping3(unittest.TestCase):
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
             with self.assertRaises(OSError):
                 command_line_ping3.main(['-l', '99999', 'example.com'])
+
+    def test_interval(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            start_time = time.time()
+            command_line_ping3.main(['-i', '1.7', 'example.com'])
+            end_time = time.time()
+            self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
+            self.assertFalse('Timeout' in fake_out.getvalue())
 
     def test_debug(self):
         with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:

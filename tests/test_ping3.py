@@ -2,6 +2,7 @@ import sys
 import os.path
 import io
 import unittest
+import time
 from unittest.mock import patch
 import socket
 
@@ -12,7 +13,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.4.7"
+    __version__ = "2.5.1"
 
     def setUp(self):
         pass
@@ -121,6 +122,14 @@ class test_ping3(unittest.TestCase):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", count=1)
             self.assertEqual(fake_out.getvalue().count("\n"), 1)
+
+    def test_verbose_ping_interval(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            start_time = time.time()
+            ping3.verbose_ping("example.com", interval=1.7)
+            end_time = time.time()
+            self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
+            self.assertFalse('Timeout' in fake_out.getvalue())
 
     def test_ping_hostunknown(self):
         not_exist_url = "not-exist.com"

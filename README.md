@@ -108,6 +108,12 @@ ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
+
+>>> verbose_ping('example.com', interval=5)  # Wait 5 seconds between each packet. Default is 0.
+ping 'example.com' ... 215ms  # wait 5 secs
+ping 'example.com' ... 216ms  # wait 5 secs
+ping 'example.com' ... 219ms  # wait 5 secs
+ping 'example.com' ... 217ms
 ```
 
 ### DEBUG mode
@@ -204,6 +210,12 @@ $ ping3 -l 56 example.com  # -l/--load. Set ICMP packet payload to 56 bytes. Def
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ ping3 -i 5 example.com  # -i/--interval. Wait 5 seconds between each packet. Default is 0.
+ping 'example.com' ... 215ms  # wait 5 secs
+ping 'example.com' ... 216ms  # wait 5 secs
+ping 'example.com' ... 219ms  # wait 5 secs
 ping 'example.com' ... 217ms
 
 $ ping3 --exceptions --wait 0.001 example.com  # EXCPETIONS mode is on when --exceptions shows up.
