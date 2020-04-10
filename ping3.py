@@ -275,7 +275,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
         sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
         if interface:
-            sock.setsockopt(socket.SOL_SOCKET, 25, interface)
+            sock.setsockopt(socket.SOL_SOCKET, 25, interface.encode())
         if src_addr:
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
