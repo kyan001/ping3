@@ -98,8 +98,6 @@ class test_ping3(unittest.TestCase):
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_ping_ttl(self):
-        delay = ping3.ping("example.com", ttl=64)
-        self.assertIsInstance(delay, float)
         delay = ping3.ping("example.com", ttl=1)
         self.assertIsNone(delay)
 
