@@ -3,6 +3,7 @@ import os.path
 import io
 import time
 import unittest
+import socket
 from unittest.mock import patch
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -64,6 +65,22 @@ class test_ping3(unittest.TestCase):
             end_time = time.time()
             self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
             self.assertFalse('Timeout' in fake_out.getvalue())
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux only")
+    def test_interface(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            try:
+                route_cmd = os.popen("ip -o -4 route show to default")
+                default_route = route_cmd.read()
+            finally:
+                route_cmd.close()
+            my_interface = default_route.split()[4]
+            try:
+                socket.if_nametoindex(my_interface)  # test if the interface exists.
+            except OSError:
+                self.fail('Interface Name Error: {}'.format(my_interface))
+            command_line_ping3.main(['-I', my_interface, 'example.com'])
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_debug(self):
         with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:

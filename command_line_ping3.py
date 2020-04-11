@@ -19,6 +19,7 @@ def main(assigned_args: list = None):
     parser.add_argument("-c", "--count", dest="count", metavar="COUNT", type=int, default=4, help="How many pings should be sent. Default is 4.")
     parser.add_argument("-w", "--wait", dest="timeout", metavar="TIMEOUT", type=float, default=4, help="Time to wait for a response, in seconds. Default is 4.")
     parser.add_argument("-i", "--interval", dest="interval", metavar="INTERVAL", type=float, default=0, help="Time to wait between each packet, in seconds. Default is 0.")
+    parser.add_argument("-I", "--interface", dest="interface", metavar="INTERFACE", default="", help="LINUX ONLY. The gateway network interface to ping from. Default is None.")
     parser.add_argument("-t", "--ttl", dest="ttl", metavar="TTL", type=int, default=64, help="The Time-To-Live of the outgoing packet. Default is 64.")
     parser.add_argument("-l", "--load", dest="size", metavar="SIZE", type=int, default=56, help="The ICMP packet payload size in bytes. Default is 56.")
     parser.add_argument("--debug", action="store_true", dest="debug", help="Turn on DEBUG mode.")
@@ -28,4 +29,4 @@ def main(assigned_args: list = None):
     ping3.EXCEPTIONS = True if args.exceptions else False
 
     for addr in args.dest_addr:
-        ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval)
+        ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface)
