@@ -253,7 +253,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None, ttl: int = 64, seq: int = 0, size: int = 56) -> float or None:
+def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None, ttl: int = 64, seq: int = 0, size: int = 56, interface: str = None) -> float or None:
     """
     Send one ping to destination address with the given timeout.
 
@@ -265,6 +265,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         ttl: The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS. (default 64)
         seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)
         size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
+        interface: The gateway interface to ping from (e.g. 'wlan0'). (default None)
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
@@ -274,6 +275,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     """
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
         sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+        if interface:
+            sock.setsockopt(socket.SOL_SOCKET, 25, interface.encode())
         if src_addr:
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
