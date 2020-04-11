@@ -110,7 +110,7 @@ class test_ping3(unittest.TestCase):
             except OSError:
                 self.fail('Interface Name Error: {}'.format(my_interface))
             dest_addr = "example.com"
-            delay = ping3.ping(dest_addr, interface=my_interface)
+            ping3.verbose_ping(dest_addr, interface=my_interface)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_ping_bind(self):
