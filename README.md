@@ -62,7 +62,10 @@ None
 >>> ping('example.com', unit='ms')  # Returns delay in milliseconds. Default unit='s' for seconds.
 215.9627876281738
 
->>> ping('example.com', src_addr='192.168.1.15')  # Set source ip address for multiple interfaces. Default src_addr=None for no binding.
+>>> ping('example.com', src_addr='192.168.1.15')  # WINDOWS ONLY. Set source ip address for multiple interfaces. Default src_addr=None for no binding.
+0.215697261510079666
+
+>>> ping('example.com', interface='eth0')  # LINUX ONLY. Set source interface for multiple network interfaces. Default interface=None for no binding.
 0.215697261510079666
 
 >>> ping('example.com', ttl=5)  # Set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl=64.
@@ -91,7 +94,13 @@ ping 'example.com' ... 217ms
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 
->>> verbose_ping('example.com', src_addr='192.168.1.15')  # Ping from source IP address. Default src_addr=None
+>>> verbose_ping('example.com', src_addr='192.168.1.15')  # WINDOWS ONLY. Ping from source IP address. Default src_addr=None
+ping 'example.com' from '192.168.1.15' ... 215ms
+ping 'example.com' from '192.168.1.15' ... 216ms
+ping 'example.com' from '192.168.1.15' ... 219ms
+ping 'example.com' from '192.168.1.15' ... 217ms
+
+>>> verbose_ping('example.com', interface='wifi0')  # LINUX ONLY. Ping from network interface 'wifi0'. Default interface=None
 ping 'example.com' from '192.168.1.15' ... 215ms
 ping 'example.com' from '192.168.1.15' ... 216ms
 ping 'example.com' from '192.168.1.15' ... 219ms
@@ -113,6 +122,12 @@ ping 'example.com' ... Timeout
 ping 'example.com' ... 215ms  # wait 5 secs
 ping 'example.com' ... 216ms  # wait 5 secs
 ping 'example.com' ... 219ms  # wait 5 secs
+ping 'example.com' ... 217ms
+
+>>> verbose_ping('example.com', size=56)  # Set ICMP payload to 56 bytes. Default size=56.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 ```
 

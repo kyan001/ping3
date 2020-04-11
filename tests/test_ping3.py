@@ -13,7 +13,7 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.5.1"
+    __version__ = "2.6.1"
 
     def setUp(self):
         pass
@@ -78,6 +78,39 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_unit(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", unit="ms")
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux only")
+    def test_ping_interface(self):
+        try:
+            route_cmd = os.popen("ip -o -4 route show to default")
+            default_route = route_cmd.read()
+        finally:
+            route_cmd.close()
+        my_interface = default_route.split()[4]
+        try:
+            socket.if_nametoindex(my_interface)  # test if the interface exists.
+        except OSError:
+            self.fail('Interface Name Error: {}'.format(my_interface))
+        dest_addr = "example.com"
+        delay = ping3.ping(dest_addr, interface=my_interface)
+        self.assertIsInstance(delay, float)
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux only")
+    def test_verbose_ping_interface(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            try:
+                route_cmd = os.popen("ip -o -4 route show to default")
+                default_route = route_cmd.read()
+            finally:
+                route_cmd.close()
+            my_interface = default_route.split()[4]
+            try:
+                socket.if_nametoindex(my_interface)  # test if the interface exists.
+            except OSError:
+                self.fail('Interface Name Error: {}'.format(my_interface))
+            dest_addr = "example.com"
+            delay = ping3.ping(dest_addr, interface=my_interface)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_ping_bind(self):

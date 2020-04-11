@@ -12,7 +12,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.5.1"
+__version__ = "2.6.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -20,6 +20,7 @@ LOGGER = None  # LOGGER: Record logs into console or file.
 IP_HEADER_FORMAT = "!BBHHHBBHII"
 ICMP_HEADER_FORMAT = "!BBHHH"  # According to netinet/ip_icmp.h. !=network byte order(big-endian), B=unsigned char, H=unsigned short
 ICMP_TIME_FORMAT = "!d"  # d=double
+SOCKET_SO_BINDTODEVICE = 25  # socket.SO_BINDTODEVICE
 
 
 def _debug(*args, **kwargs):
@@ -262,10 +263,10 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         timeout: Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4)
         unit: The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
         src_addr: WINDOWS ONLY. The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default None)
+        interface: LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default None)
         ttl: The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS. (default 64)
         seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)
         size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
-        interface: The gateway interface to ping from (e.g. 'wlan0'). (default None)
 
     Returns:
         The delay in seconds/milliseconds or None on timeout.
@@ -276,7 +277,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
         sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
         if interface:
-            sock.setsockopt(socket.SOL_SOCKET, 25, interface.encode())
+            sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # packets will be sent from specified interface.
+            _debug("Socket Interface Binded:", interface)
         if src_addr:
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
