@@ -66,7 +66,7 @@ class test_ping3(unittest.TestCase):
             self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
             self.assertFalse('Timeout' in fake_out.getvalue())
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux only")
+    @unittest.skipUnless(sys.platform == 'linux', "Linux only")
     def test_interface(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             try:

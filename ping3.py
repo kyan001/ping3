@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import sys
+import os
 import socket
 import struct
 import select
@@ -12,7 +13,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.6.1"
+__version__ = "2.6.2"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -163,7 +164,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     Args:
         sock: Socket.
         dest_addr: The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
-        icmp_id: ICMP packet id, usually is same as pid.
+        icmp_id: ICMP packet id. Calculated from Process ID plus Thread ID.
         seq: ICMP packet sequence, usually increases from 0 in the same process.
         size: The ICMP packet payload size in bytes. Note this is only for the payload part.
 
@@ -283,7 +284,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
         thread_id = threading.get_native_id() if hasattr(threading, 'get_native_id') else threading.currentThread().ident  # threading.get_native_id() is supported >= python3.8.
-        icmp_id = checksum(str(thread_id).encode())  # using checksum to avoid icmp_id collision.
+        process_id = os.getpid()  # If ping() run under different process, thread_id may be identical.
+        icmp_id = checksum(str(process_id + thread_id).encode())  # using checksum to avoid icmp_id collision.
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
