@@ -178,7 +178,7 @@ error.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
 error.TimeToLiveExpired: Time exceeded: Time To Live expired.
 ```
 
-## Command Line Exexcution
+## Command Line Execution
 
 Execute ping3 from command-line.
 Note: `ping3` needs `root` privilege to send/receive packets. You may want to use `sudo ping3`.
