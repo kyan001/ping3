@@ -14,7 +14,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.6.5"
+__version__ = "2.6.6"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -192,7 +192,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
 
 
 @_func_logger
-def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> float or None:
+def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> float:
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
@@ -256,7 +256,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None, ttl: int = 64, seq: int = 0, size: int = 56, interface: str = None) -> float or None:
+def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None, ttl: int = None, seq: int = 0, size: int = 56, interface: str = None) -> float:
     """
     Send one ping to destination address with the given timeout.
 
@@ -266,7 +266,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         unit: The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
         src_addr: WINDOWS ONLY. The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default None)
         interface: LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default None)
-        ttl: The Time-To-Live of the outgoing packet. Default is 64, same as in Linux and macOS. (default 64)
+        ttl: The Time-To-Live of the outgoing packet. Default is None, which means using OS default ttl -- 64 onLinux and macOS, and 128 on Windows. (default None)
         seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)
         size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
 
@@ -277,7 +277,17 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
     """
     with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
-        sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+        if ttl:
+            try:  # IPPROTO_IP is for Windows and BSD Linux.
+                if sock.getsockopt(socket.IPPROTO_IP, socket.IP_TTL):
+                    sock.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, ttl)
+            except OSError as err:
+                _debug("Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err))
+            try:
+                if sock.getsockopt(socket.SOL_IP, socket.IP_TTL):
+                    sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+            except OSError as err:
+                _debug("Set Socket Option `IP_TTL` in `SOL_IP` Failed: {}".format(err))
         if interface:
             sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # packets will be sent from specified interface.
             _debug("Socket Interface Binded:", interface)
