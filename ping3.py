@@ -175,8 +175,8 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     _debug("Destination Address: '{}'".format(dest_addr))
     try:
         dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
-    except socket.gaierror as e:
-        raise errors.HostUnknown(dest_addr) from e
+    except socket.gaierror as err:
+        raise errors.HostUnknown(dest_addr) from err
     _debug("Destination Address:", dest_addr)
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
@@ -290,13 +290,13 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
-        except errors.HostUnknown as e:  # Unsolved
-            _debug(e)
-            _raise(e)
+        except errors.HostUnknown as err:  # Unsolved
+            _debug(err)
+            _raise(err)
             return False
-        except errors.PingError as e:
-            _debug(e)
-            _raise(e)
+        except errors.PingError as err:
+            _debug(err)
+            _raise(err)
             return None
         if delay is None:
             return None
