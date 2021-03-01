@@ -5,12 +5,14 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/ping3.svg)
 
 Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
-(Note that ICMP messages can only be sent from processes running as root.)
+(Note that on Linux and Windows, ICMP messages can only be sent from processes running as root.)
 
 > The Python2 version originally from [here](http://github.com/samuel/python-ping).\
 > This version maintained at [this github repo](https://github.com/kyan001/ping3).
 
 ## Get Started
+
+* If you met "permission denied", you may need to run this as root.
 
 ```shell
 pip install ping3  # install ping

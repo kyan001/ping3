@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
-import sys
 import os
+import platform
 import socket
 import struct
 import select
@@ -14,7 +14,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.6.6"
+__version__ = "2.7.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -276,7 +276,11 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     Raises:
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
     """
-    with socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP) as sock:
+    if platform.system() == "Darwin":
+        socket_type = socket.SOCK_DGRAM
+    else:
+        socket_type = socket.SOCK_RAW
+    with socket.socket(socket.AF_INET, socket_type, socket.IPPROTO_ICMP) as sock:
         if ttl:
             try:  # IPPROTO_IP is for Windows and BSD Linux.
                 if sock.getsockopt(socket.IPPROTO_IP, socket.IP_TTL):
