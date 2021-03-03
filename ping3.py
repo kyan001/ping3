@@ -145,7 +145,7 @@ def read_ip_header(raw: bytes) -> dict:
         A map contains the infos from the raw header.
     """
     def stringify_ip(ip: int) -> str:
-        return ".".join([str(ip >> offset & 0xff) for offset in (24, 16, 8, 0)])  # str(ipaddress.ip_address(ip))
+        return ".".join(str(ip >> offset & 0xff) for offset in (24, 16, 8, 0))  # str(ipaddress.ip_address(ip))
 
     ip_header_keys = ('version', 'tos', 'len', 'id', 'flags', 'ttl', 'protocol', 'checksum', 'src_addr', 'dest_addr')
     ip_header = dict(zip(ip_header_keys, struct.unpack(IP_HEADER_FORMAT, raw)))
