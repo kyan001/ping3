@@ -234,7 +234,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP Header:", icmp_header)
         _debug("Received ICMP Payload:", icmp_payload_raw)
-        if icmp_header['id'] and icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ID field.
+        if icmp_header.get('id', icmp_id) != icmp_id:  # ECHO_REPLY should match the ID field.
             _debug("ICMP ID dismatch. Packet filtered out.")
             continue
         if icmp_header['type'] == IcmpType.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
