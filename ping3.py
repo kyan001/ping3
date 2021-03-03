@@ -97,7 +97,7 @@ def ones_comp_sum16(num1: int, num2: int) -> int:
         The calculated result.
     """
 
-    carry = 1 << 16
+    carry = 0x10000
     result = num1 + num2
     return result if result < carry else result + 1 - carry
 
