@@ -47,7 +47,7 @@ def _debug(*args, **kwargs):
         return None
     global LOGGER
     LOGGER = LOGGER or get_logger()
-    message = " ".join([str(item) for item in args])
+    message = " ".join(str(item) for item in args)
     LOGGER.debug(message)
 
 
