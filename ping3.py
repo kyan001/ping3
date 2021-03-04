@@ -86,22 +86,6 @@ def _func_logger(func: callable) -> callable:
     return wrapper
 
 
-def ones_comp_sum16(num1: int, num2: int) -> int:
-    """Calculates the 1's complement sum for 16-bit numbers.
-
-    Args:
-        num1: 16-bit number.
-        num2: 16-bit number.
-
-    Returns:
-        The calculated result.
-    """
-
-    carry = 1 << 16
-    result = num1 + num2
-    return result if result < carry else result + 1 - carry
-
-
 def checksum(source: bytes) -> int:
     """Calculates the checksum of the input bytes.
 
@@ -114,12 +98,10 @@ def checksum(source: bytes) -> int:
     Returns:
         Calculated checksum.
     """
-    if len(source) % 2:  # if the total length is odd, padding with one octet of zeros for computing the checksum
-        source += b'\x00'
-    sum = 0
-    for i in range(0, len(source), 2):
-        sum = ones_comp_sum16(sum, (source[i + 1] << 8) + source[i])
-    return ~sum & 0xffff
+    res = sum(source[::2]) + (sum(source[1::2]) << 8)
+    while res > 0xffff:
+        res = (res & 0xffff) + (res >> 16)
+    return ~res & 0xffff
 
 
 def read_icmp_header(raw: bytes) -> dict:
