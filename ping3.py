@@ -47,7 +47,7 @@ def _debug(*args, **kwargs):
         return None
     global LOGGER
     LOGGER = LOGGER or get_logger()
-    message = " ".join([str(item) for item in args])
+    message = " ".join(str(item) for item in args)
     LOGGER.debug(message)
 
 
@@ -75,7 +75,7 @@ def _func_logger(func: callable) -> callable:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        pargs = ", ".join(["'{}'".format(arg) if isinstance(arg, str) else arg for arg in args])
+        pargs = ", ".join("'{}'".format(arg) if isinstance(arg, str) else arg for arg in args)
         kargs = str(kwargs) if kwargs else ""
         all_args = ", ".join((pargs, kargs)) if (pargs and kargs) else (pargs or kargs)
         _debug("Function Called:", "{func.__name__}({})".format(all_args, func=func))
@@ -145,7 +145,7 @@ def read_ip_header(raw: bytes) -> dict:
         A map contains the infos from the raw header.
     """
     def stringify_ip(ip: int) -> str:
-        return ".".join([str(ip >> offset & 0xff) for offset in (24, 16, 8, 0)])  # str(ipaddress.ip_address(ip))
+        return ".".join(str(ip >> offset & 0xff) for offset in (24, 16, 8, 0))  # str(ipaddress.ip_address(ip))
 
     ip_header_keys = ('version', 'tos', 'len', 'id', 'flags', 'ttl', 'protocol', 'checksum', 'src_addr', 'dest_addr')
     ip_header = dict(zip(ip_header_keys, struct.unpack(IP_HEADER_FORMAT, raw)))
