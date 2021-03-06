@@ -1,8 +1,9 @@
 from setuptools import setup, find_packages
+import ping3
 
 setup(
     name='ping3',
-    version='2.6.6',
+    version=ping3.__version__,
     description='A pure python3 version of ICMP ping implementation using raw socket.',
     long_description='Ping3 is a pure python3 version of ICMP ping implementation using raw socket. Note that ICMP messages can only be sent from processes running as root.',
     url='https://github.com/kyan001/ping3',
@@ -21,6 +22,8 @@ setup(
         'Programming Language :: Python :: 3.5',
         'Programming Language :: Python :: 3.6',
         'Programming Language :: Python :: 3.7',
+        'Programming Language :: Python :: 3.8',
+        'Programming Language :: Python :: 3.9',
         'Programming Language :: Python :: 3 :: Only',
     ],
     keywords='python3 ping icmp socket tool',
