@@ -25,8 +25,8 @@ def main(assigned_args: list = None):
     parser.add_argument("--debug", action="store_true", dest="debug", help="Turn on DEBUG mode.")
     parser.add_argument("--exceptions", action="store_true", dest="exceptions", help="Turn on EXCEPTIONS mode.")
     args = parser.parse_args(assigned_args)
-    ping3.DEBUG = True if args.debug else False
-    ping3.EXCEPTIONS = True if args.exceptions else False
+    ping3.DEBUG = args.debug
+    ping3.EXCEPTIONS = args.exceptions
 
     for addr in args.dest_addr:
         ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface)
