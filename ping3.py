@@ -100,7 +100,7 @@ def checksum(source: bytes) -> int:
     """
     res = sum(source[::2]) + (sum(source[1::2]) << 8)
     while res > 0xffff:
-        res = (res & 0xffff) + (res >> 16)
+        res = sum(divmod(res, 0x10000))
     return ~res & 0xffff
 
 
