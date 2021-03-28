@@ -14,7 +14,7 @@ Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
 
 * If you met "permission denied", you may need to run this as root.
 
-```shell
+```sh
 pip install ping3  # install ping
 ```
 
@@ -30,7 +30,7 @@ ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 ```
 
-```shell
+```sh
 $ ping3 example.com  # Verbose ping.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
@@ -40,7 +40,7 @@ ping 'example.com' ... 217ms
 
 ## Installation
 
-```shell
+```sh
 pip install ping3  # install ping3
 pip install --upgrade ping3 # upgrade ping3
 pip uninstall ping3  # uninstall ping3
@@ -185,7 +185,7 @@ error.TimeToLiveExpired: Time exceeded: Time To Live expired.
 Execute ping3 from command-line.
 Note: `ping3` needs `root` privilege to send/receive packets. You may want to use `sudo ping3`.
 
-```shell
+```sh
 $ ping3 --help  # -h/--help. Command-line help message.
 $ python -m ping3 --help  # Same as 'ping3'. 'ping3' is an alias for 'python -m ping3'
 
