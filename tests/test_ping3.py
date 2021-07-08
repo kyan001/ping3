@@ -13,7 +13,6 @@ import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 class test_ping3(unittest.TestCase):
     """ping3 unittest"""
-    __version__ = "2.7.0"
 
     def setUp(self):
         pass
@@ -22,7 +21,7 @@ class test_ping3(unittest.TestCase):
         pass
 
     def test_version(self):
-        self.assertEqual(self.__version__, ping3.__version__)
+        self.assertTrue(isinstance(ping3.__version__, str))
 
     def test_ping_normal(self):
         delay = ping3.ping("example.com")
