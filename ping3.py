@@ -14,7 +14,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.7.0"
+__version__ = "2.8.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -326,7 +326,7 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
 
     Args:
         dest_addr: The destination address. Ex. "192.168.1.1"/"example.com"
-        count: How many pings should be sent. Default is 4, same as Windows CMD. (default 4)
+        count: How many pings should be sent. 0 means endless loop until manually stopped. Default is 4, same as Windows CMD. (default 4)
         interval: How many seconds between two packets. Default is 0, which means send the next packet as soon as the previous one responsed. (default 0)
         *args and **kwargs: And all the other arguments available in ping() except `seq`.
 
@@ -336,7 +336,10 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
     timeout = kwargs.get("timeout")
     src = kwargs.get("src")
     unit = kwargs.setdefault("unit", "ms")
-    for i in range(count):
+    i = 0
+    while i < count or count == 0:
+        if interval > 0 and i > 0:
+            time.sleep(interval)
         output_text = "ping '{}'".format(dest_addr)
         output_text += " from '{}'".format(src) if src else ""
         output_text += " ... "
@@ -346,8 +349,7 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
             print("Timeout > {}s".format(timeout) if timeout else "Timeout")
         else:
             print("{value}{unit}".format(value=int(delay), unit=unit))
-        if interval > 0 and i < (count - 1):
-            time.sleep(interval)
+        i += 1
 
 
 if __name__ == "__main__":

@@ -208,7 +208,7 @@ ping '8.8.8.8' ... 2ms
 ping '8.8.8.8' ... 6ms
 ping '8.8.8.8' ... 5ms
 
-$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent. Default is 4.
+$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent. 0 means endless loop. Default is 4.
 ping 'example.com' ... 215ms
 
 $ ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
