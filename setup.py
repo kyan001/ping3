@@ -25,7 +25,9 @@ setuptools.setup(
     py_modules=["ping3", "command_line_ping3", "errors", "enums"],
     python_requires='>=3',
     install_requires=[],
-    extras_require={},
+    extras_require={
+        'dev': ['build', 'twine', 'pycodestyle'],
+    },
     package_data={},
     data_files=[],
     entry_points={
