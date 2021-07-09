@@ -14,7 +14,7 @@ import functools
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.8.0"
+__version__ = "2.8.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -93,15 +93,17 @@ def checksum(source: bytes) -> int:
     RFC792: https://tools.ietf.org/html/rfc792
 
     Args:
-        source: The input to be calculated.
+        source: Bytes. The input to be calculated.
 
     Returns:
-        Calculated checksum.
+        int: Calculated checksum.
     """
-    res = sum(source[::2]) + (sum(source[1::2]) << 8)
-    while res > 0xffff:
-        res = sum(divmod(res, 0x10000))
-    return ~res & 0xffff
+    BITS = 16  # 16-bit long
+    carry = 1 << BITS  # 0x10000
+    result = sum(source[::2]) + (sum(source[1::2]) << (BITS // 2))  # Even bytes (odd indexes) shift 1 byte to the left.
+    while result >= carry:  # Ones' complement sum.
+        result = sum(divmod(result, carry))  # Each carry add to right most bit.
+    return ~result & ((1 << BITS) - 1)  # Ensure 16-bit
 
 
 def read_icmp_header(raw: bytes) -> dict:
