@@ -1,4 +1,6 @@
 # UPDATES
+* 2.9.0:
+    * Feature: Support root-less ICMP pings on Linux. ( #10 )
 * 2.8.1:
     * Improvement: Checksum calculation is faster.
 * 2.8.0:

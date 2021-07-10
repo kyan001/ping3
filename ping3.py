@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import os
-import platform
 import socket
 import struct
 import select
@@ -10,11 +9,12 @@ import zlib
 import threading
 import logging
 import functools
+import errno
 
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.8.1"
+__version__ = "2.9.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -199,8 +199,13 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         DestinationHostUnreachable: If the destination host is unreachable.
         DestinationUnreachable: If the destination is unreachable.
     """
-    ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
-    icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
+    has_ip_header = (os.name != 'posix') or (sock.type == socket.SOCK_RAW)  # No IP Header when unprivileged on Linux.
+    if has_ip_header:
+        ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
+        icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
+    else:
+        _debug("Unprivileged on Linux")
+        icmp_header_slice = slice(0, struct.calcsize(ICMP_HEADER_FORMAT))  # [0:8]
     timeout_time = time.time() + timeout  # Exactly time when timeout.
     _debug("Timeout time:", time.ctime(timeout_time))
     while True:
@@ -212,12 +217,16 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             raise errors.Timeout(timeout)
         time_recv = time.time()
         recv_data, addr = sock.recvfrom(1024)
-        ip_header_raw, icmp_header_raw, icmp_payload_raw = recv_data[ip_header_slice], recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
-        ip_header = read_ip_header(ip_header_raw)
-        _debug("Received IP Header:", ip_header)
+        if has_ip_header:
+            ip_header_raw = recv_data[ip_header_slice]
+            ip_header = read_ip_header(ip_header_raw)
+            _debug("Received IP Header:", ip_header)
+        icmp_header_raw, icmp_payload_raw = recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP Header:", icmp_header)
         _debug("Received ICMP Payload:", icmp_payload_raw)
+        if not has_ip_header:  #  When unprivileged on Linux, ICMP ID is rewrited by kernel.
+            icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header['id'] and icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ID field.
             _debug("ICMP ID dismatch. Packet filtered out.")
             continue
@@ -260,11 +269,15 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
     Raises:
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
     """
-    if platform.system() == "Darwin":
-        socket_type = socket.SOCK_DGRAM
-    else:
-        socket_type = socket.SOCK_RAW
-    with socket.socket(socket.AF_INET, socket_type, socket.IPPROTO_ICMP) as sock:
+    try:
+        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+    except PermissionError as err:
+        if err.errno == errno.EPERM:  # [Errno 1] Operation not permitted
+            _debug("`{}` when create socket.SOCK_RAW, using socket.SOCK_DGRAM instead.".format(err))
+            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_ICMP)
+        else:
+            raise err
+    with sock:
         if ttl:
             try:  # IPPROTO_IP is for Windows and BSD Linux.
                 if sock.getsockopt(socket.IPPROTO_IP, socket.IP_TTL):
@@ -300,7 +313,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
             return None
         if unit == "ms":
             delay *= 1000  # in milliseconds
-    return delay
+        return delay
 
 
 @_func_logger
@@ -310,7 +323,7 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
 
     Args:
         dest_addr: The destination address. Ex. "192.168.1.1"/"example.com"
-        count: How many pings should be sent. 0 means endless loop until manually stopped. Default is 4, same as Windows CMD. (default 4)
+        count: How many pings should be sent. 0 means infinite loops until manually stopped. Default is 4, same as Windows CMD. (default 4)
         interval: How many seconds between two packets. Default is 0, which means send the next packet as soon as the previous one responsed. (default 0)
         *args and **kwargs: And all the other arguments available in ping() except `seq`.
 

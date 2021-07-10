@@ -88,13 +88,17 @@ ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
->>> verbose_ping('example.com', count=6)  # Ping 6 times. Default count=4
+>>> verbose_ping('example.com', count=6)  # Ping 6 times. Default count=4.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
+
+>>> verbose_ping('example.com', count=0)  # Ping endlessly (0 means infinite loops). Using `ctrl + c` to stop manully.
+ping 'example.com' ... 215ms
+...
 
 >>> verbose_ping('example.com', src_addr='192.168.1.15')  # WINDOWS ONLY. Ping from source IP address. Default src_addr=None
 ping 'example.com' from '192.168.1.15' ... 215ms
@@ -208,8 +212,12 @@ ping '8.8.8.8' ... 2ms
 ping '8.8.8.8' ... 6ms
 ping '8.8.8.8' ... 5ms
 
-$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent. 0 means endless loop. Default is 4.
+$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent.  Default is 4.
 ping 'example.com' ... 215ms
+
+$ ping3 -c 0 example.com  # Ping endlessly (0 means infinite loops). Using `ctrl + c` to stop manully.
+ping 'example.com' ... 215ms
+...
 
 $ ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
 ping 'example.com' ... 215ms
