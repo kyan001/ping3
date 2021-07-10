@@ -5,6 +5,7 @@ import socket
 import struct
 import select
 import time
+import platform
 import zlib
 import threading
 import logging
@@ -14,7 +15,7 @@ import errno
 import errors
 from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.9.0"
+__version__ = "2.9.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -199,7 +200,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         DestinationHostUnreachable: If the destination host is unreachable.
         DestinationUnreachable: If the destination is unreachable.
     """
-    has_ip_header = (os.name != 'posix') or (sock.type == socket.SOCK_RAW)  # No IP Header when unprivileged on Linux.
+    has_ip_header = (os.name != 'posix') or (platform.system() == 'Darwin') or (sock.type == socket.SOCK_RAW)  # No IP Header when unprivileged on Linux.
     if has_ip_header:
         ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
         icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]

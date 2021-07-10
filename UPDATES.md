@@ -1,4 +1,6 @@
 # UPDATES
+* 2.9.1:
+    * Bug Fix: macOS is not treated as Linux now.
 * 2.9.0:
     * Feature: Support root-less ICMP pings on Linux. ( #10 )
 * 2.8.1:
