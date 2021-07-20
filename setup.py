@@ -21,8 +21,7 @@ setuptools.setup(
         'Programming Language :: Python :: 3',
     ],
     keywords='python3 ping icmp socket tool',
-    packages=setuptools.find_packages(exclude=['contrib', 'docs', 'tests']),
-    py_modules=["ping3", "command_line_ping3", "errors", "enums"],
+    packages=["ping3"],
     python_requires='>=3',
     install_requires=[],
     extras_require={

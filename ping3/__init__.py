@@ -12,8 +12,8 @@ import logging
 import functools
 import errno
 
-import errors
-from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
+from . import errors
+from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
 __version__ = "2.9.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
