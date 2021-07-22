@@ -30,6 +30,6 @@ setuptools.setup(
     package_data={},
     data_files=[],
     entry_points={
-        'console_scripts': ['ping3=ping3._main:main'],
+        'console_scripts': ['ping3=ping3.command_line:main'],
     },
 )
