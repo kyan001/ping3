@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.9.3"
+__version__ = "3.0.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -258,7 +258,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         dest_addr: The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
         timeout: Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4)
         unit: The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
-        src_addr: WINDOWS ONLY. The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default None)
+        src_addr: The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default None)
         interface: LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default None)
         ttl: The Time-To-Live of the outgoing packet. Default is None, which means using OS default ttl -- 64 onLinux and macOS, and 128 on Windows. (default None)
         seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)

@@ -43,20 +43,20 @@ class test_ping3(unittest.TestCase):
 
     def test_timeout(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line.main(['-w', '0.0001', 'example.com'])
+            command_line.main(['-t', '0.0001', 'example.com'])
             self.assertRegex(fake_out.getvalue(), r".*Timeout \> [0-9\.]+s.*")
 
     def test_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line.main(['-t', '1', 'example.com'])
+            command_line.main(['-T', '1', 'example.com'])
             self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
 
     def test_size(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line.main(['-l', '100', 'example.com'])
+            command_line.main(['-s', '100', 'example.com'])
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
             with self.assertRaises(OSError):
-                command_line.main(['-l', '99999', 'example.com'])
+                command_line.main(['-s', '99999', 'example.com'])
 
     def test_interval(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
@@ -82,6 +82,15 @@ class test_ping3(unittest.TestCase):
             command_line.main(['-I', my_interface, 'example.com'])
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
+    def test_src_addr(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            my_ip = socket.gethostbyname(socket.gethostname())
+            dest_addr = "example.com"
+            if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
+                dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
+            command_line.main(['-S', my_ip, dest_addr])
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
     def test_debug(self):
         with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:
             command_line.main(['--debug', '-c', '1', 'example.com'])
@@ -90,7 +99,7 @@ class test_ping3(unittest.TestCase):
     def test_exceptions(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             with self.assertRaises(errors.Timeout):
-                command_line.main(['--exceptions', '-w', '0.0001', 'example.com'])
+                command_line.main(['--exceptions', '-t', '0.0001', 'example.com'])
 
 
 if __name__ == "__main__":

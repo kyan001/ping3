@@ -112,7 +112,7 @@ class test_ping3(unittest.TestCase):
             ping3.verbose_ping(dest_addr, interface=my_interface)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
-    def test_ping_bind(self):
+    def test_ping_src_addr(self):
         my_ip = socket.gethostbyname(socket.gethostname())
         dest_addr = "example.com"
         if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
@@ -120,7 +120,7 @@ class test_ping3(unittest.TestCase):
         delay = ping3.ping(dest_addr, src_addr=my_ip)
         self.assertIsInstance(delay, float)
 
-    def test_verbose_ping_bind(self):
+    def test_verbose_ping_src_addr(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             my_ip = socket.gethostbyname(socket.gethostname())
             dest_addr = "example.com"

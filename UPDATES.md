@@ -1,8 +1,17 @@
 # UPDATES
+* 3.0.0:
+    * Backward Compatibility: Only Command-line options changed, now the options is more like `ping` on macOS and Linux.
+        * `-w`/`--wait` -> `-t`/`--timeout`.
+        * `-t`/`--ttl` -> `-T`/`--ttl`.
+        * `-l`/`--load` -> `-s`/`--size`.
+    * Improvement: 2 command-line options now have short forms.
+        * `-D` is added as the short form of `--debug`.
+        * `-E` is added as the short form of `--exceptions`.
+    * Feature: Use new command-line option `-S`/`--src` to set source address `src_addr`.
 * 2.9.3:
-    * Set packet receive buffer size to 1500. ( #40 )
+    * Bug Fix: Set packet receive buffer size to 1500. ( #40 )
 * 2.9.2:
-    * Converted to a proper package. ( #38 #39 )
+    * Improvement: Converted to a proper package. ( #38 #39 )
 * 2.9.1:
     * Bug Fix: macOS is not treated as Linux now.
 * 2.9.0:

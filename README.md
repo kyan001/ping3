@@ -52,28 +52,28 @@ pip uninstall ping3  # uninstall ping3
 >>> ping('example.com')  # Returns delay in seconds.
 0.215697261510079666
 
->>> ping('not.exist.com')  # if host unknown (cannot resolve), returns False
+>>> ping('not.exist.com')  # If host unknown (cannot resolve), returns False.
 False
 
->>> ping("224.0.0.0")  # If timed out (no reply), returns None
+>>> ping("224.0.0.0")  # If timed out (no reply), returns None.
 None
 
->>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4 for 4 seconds.
+>>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout is 4 for 4 seconds.
 0.215697261510079666
 
->>> ping('example.com', unit='ms')  # Returns delay in milliseconds. Default unit='s' for seconds.
+>>> ping('example.com', unit='ms')  # Returns delay in milliseconds. Default unit is 's' for seconds.
 215.9627876281738
 
->>> ping('example.com', src_addr='192.168.1.15')  # WINDOWS ONLY. Set source ip address for multiple interfaces. Default src_addr=None for no binding.
+>>> ping('example.com', src_addr='192.168.1.15')  # Set source ip address for multiple interfaces. Default src_addr is None for no binding.
 0.215697261510079666
 
->>> ping('example.com', interface='eth0')  # LINUX ONLY. Set source interface for multiple network interfaces. Default interface=None for no binding.
+>>> ping('example.com', interface='eth0')  # LINUX ONLY. Set source interface for multiple network interfaces. Default interface is None for no binding.
 0.215697261510079666
 
->>> ping('example.com', ttl=5)  # Set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl=64.
+>>> ping('example.com', ttl=5)  # Set packet Time-To-Live to 5. The packet is discarded if it does not reach the target host after 5 jumps. Default ttl is 64.
 None
 
->>> ping('example.com', size=56)  # Set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes. Default size=56.
+>>> ping('example.com', size=56)  # Set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes. Default size is 56.
 0.215697261510079666
 
 >>> verbose_ping('example.com')  # Ping 4 times in a row.
@@ -82,13 +82,13 @@ ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
->>> verbose_ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout=4 for 4 seconds.
+>>> verbose_ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout is 4 for 4 seconds.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
->>> verbose_ping('example.com', count=6)  # Ping 6 times. Default count=4.
+>>> verbose_ping('example.com', count=6)  # Ping 6 times. Default count is 4.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -100,19 +100,19 @@ ping 'example.com' ... 216ms
 ping 'example.com' ... 215ms
 ...
 
->>> verbose_ping('example.com', src_addr='192.168.1.15')  # WINDOWS ONLY. Ping from source IP address. Default src_addr=None
+>>> verbose_ping('example.com', src_addr='192.168.1.15')  # Ping from source IP address for multiple interfaces. Default src_addr is None.
 ping 'example.com' from '192.168.1.15' ... 215ms
 ping 'example.com' from '192.168.1.15' ... 216ms
 ping 'example.com' from '192.168.1.15' ... 219ms
 ping 'example.com' from '192.168.1.15' ... 217ms
 
->>> verbose_ping('example.com', interface='wifi0')  # LINUX ONLY. Ping from network interface 'wifi0'. Default interface=None
+>>> verbose_ping('example.com', interface='wifi0')  # LINUX ONLY. Ping from network interface 'wifi0'. Default interface is None.
 ping 'example.com' from '192.168.1.15' ... 215ms
 ping 'example.com' from '192.168.1.15' ... 216ms
 ping 'example.com' from '192.168.1.15' ... 219ms
 ping 'example.com' from '192.168.1.15' ... 217ms
 
->>> verbose_ping('example.com', unit='s')  # Displays delay in seconds. Default unit="ms" for milliseconds.
+>>> verbose_ping('example.com', unit='s')  # Displays delay in seconds. Default unit is "ms" for milliseconds.
 ping 'example.com' ... 1s
 ping 'example.com' ... 2s
 ping 'example.com' ... 1s
@@ -130,7 +130,7 @@ ping 'example.com' ... 216ms  # wait 5 secs
 ping 'example.com' ... 219ms  # wait 5 secs
 ping 'example.com' ... 217ms
 
->>> verbose_ping('example.com', size=56)  # Set ICMP payload to 56 bytes. Default size=56.
+>>> verbose_ping('example.com', size=56)  # Set ICMP payload to 56 bytes. Default size is 56.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -171,7 +171,7 @@ Raise exceptions when there are errors instead of return None
 >>> import ping3
 >>> ping3.EXCEPTIONS = True  # Default is False.
 
->>> ping3.ping("example.com", timeout=0.0001)  # All Exceptions are subclasses of PingError
+>>> ping3.ping("example.com", timeout=0.0001)
 [... Traceback ...]
 ping3.errors.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
@@ -192,9 +192,9 @@ ping3.EXCEPTIONS = True
 
 try:
     ping3.ping("not.exist.com")
-except ping3.errors.HostUnknown:  # catch only host unknown error
+except ping3.errors.HostUnknown:  # Specific error is catched.
     print("Host unknown error raised.")
-except ping3.errors.PingError:  # catch all ping errors
+except ping3.errors.PingError:  # All ping3 errors are subclasses of `PingError`.
     print("A ping error raised.")
 ```
 
@@ -205,7 +205,7 @@ Note: On some platforms, `ping3` needs root privilege to send/receive packets. Y
 
 ```sh
 $ ping3 --help  # -h/--help. Command-line help message.
-$ python -m ping3 --help  # Same as 'ping3'. 'ping3' is an alias for 'python -m ping3'
+$ python -m ping3 --help  # Same as `ping3`. `ping3` is an alias for `python -m ping3`.
 
 $ ping3 -v  # -v/--version. Show ping3 version number.
 2.2.2
@@ -233,19 +233,19 @@ $ ping3 -c 0 example.com  # Ping endlessly (0 means infinite loops). Using `ctrl
 ping 'example.com' ... 215ms
 ...
 
-$ ping3 -w 10 example.com  # -w/--wait. Set timeout to 10 seconds. Default is 4.
+$ ping3 -t 10 example.com  # -t/--timeout. Set timeout to 10 seconds. Default is 4.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
-$ ping3 -t 5 example.com  # -t/--ttl. # Set TTL to 5. Default is 64.
+$ ping3 -T 5 example.com  # -T/--ttl. # Set TTL to 5. Default is 64.
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 ping 'example.com' ... Timeout
 
-$ ping3 -l 56 example.com  # -l/--load. Set ICMP packet payload to 56 bytes. Default is 56.
+$ ping3 -s 56 example.com  # -s/--size. Set ICMP packet payload to 56 bytes. Default is 56.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -257,11 +257,23 @@ ping 'example.com' ... 216ms  # wait 5 secs
 ping 'example.com' ... 219ms  # wait 5 secs
 ping 'example.com' ... 217ms
 
-$ ping3 --exceptions --wait 0.001 example.com  # EXCPETIONS mode is on when --exceptions shows up.
+$ ping3 -I eth0 example.com  # -I/--interface. LINUX ONLY. The gateway network interface to ping from. Default is None.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ ping3 -S 192.168.1.15 example.com  # -S/--src. Ping from source IP address for multiple network interfaces. Default is None.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ ping3 -E --timeout 0.001 example.com  # -E/--exceptions. EXCPETIONS mode is on when this shows up.
 [... Traceback ...]
 ping3.errors.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
-$ ping3 --debug --wait 0.001 example.com  # DEBUG mode is on when --debug shows up.
+$ ping3 -D --timeout 0.001 example.com  # -D/--debug. DEBUG mode is on when this shows up.
 [DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
 ping 'example.com' ... Timeout > 0.001s
 [DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
