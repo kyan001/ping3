@@ -1,6 +1,8 @@
 # UPDATES
+* 2.9.3:
+    * Set packet receive buffer size to 1500. ( #40 )
 * 2.9.2:
-    * Converted to a proper package
+    * Converted to a proper package. ( #38 #39 )
 * 2.9.1:
     * Bug Fix: macOS is not treated as Linux now.
 * 2.9.0:

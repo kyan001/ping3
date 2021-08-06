@@ -217,7 +217,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
         time_recv = time.time()
-        recv_data, addr = sock.recvfrom(1500)
+        recv_data, addr = sock.recvfrom(1500)  # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
         if has_ip_header:
             ip_header_raw = recv_data[ip_header_slice]
             ip_header = read_ip_header(ip_header_raw)
