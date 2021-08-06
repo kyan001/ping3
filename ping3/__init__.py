@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "2.9.2"
+__version__ = "2.9.3"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -217,7 +217,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
         time_recv = time.time()
-        recv_data, addr = sock.recvfrom(1024)
+        recv_data, addr = sock.recvfrom(1500)
         if has_ip_header:
             ip_header_raw = recv_data[ip_header_slice]
             ip_header = read_ip_header(ip_header_raw)
