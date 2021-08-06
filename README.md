@@ -173,15 +173,29 @@ Raise exceptions when there are errors instead of return None
 
 >>> ping3.ping("example.com", timeout=0.0001)  # All Exceptions are subclasses of PingError
 [... Traceback ...]
-error.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
+ping3.errors.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
 >>> ping3.ping("not.exist.com")
 [... Traceback ...]
-error.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
+ping3.errors.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
 
 >>> ping3.ping("example.com", ttl=1)
 [... Traceback ...]
-error.TimeToLiveExpired: Time exceeded: Time To Live expired.
+ping3.errors.TimeToLiveExpired: Time exceeded: Time To Live expired.
+
+>>> help(ping3.errors)  # More info about exceptions.
+```
+
+```python
+import ping3
+ping3.EXCEPTIONS = True
+
+try:
+    ping3.ping("not.exist.com")
+except ping3.errors.HostUnknown:  # catch only host unknown error
+    print("Host unknown error raised.")
+except ping3.errors.PingError:  # catch all ping errors
+    print("A ping error raised.")
 ```
 
 ## Command Line Execution
@@ -245,7 +259,7 @@ ping 'example.com' ... 217ms
 
 $ ping3 --exceptions --wait 0.001 example.com  # EXCPETIONS mode is on when --exceptions shows up.
 [... Traceback ...]
-error.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
+ping3.errors.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 
 $ ping3 --debug --wait 0.001 example.com  # DEBUG mode is on when --debug shows up.
 [DEBUG] Request timeout for ICMP packet. (Timeout = 0.001s)
