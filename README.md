@@ -5,7 +5,7 @@
 ![PyPI - Downloads](https://img.shields.io/pypi/dm/ping3.svg)
 
 Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
-(Note that on Linux and Windows, ICMP messages can only be sent from processes running as root.)
+(Note that on some platforms, ICMP messages can only be sent from processes running as root.)
 
 > The Python2 version originally from [here](http://github.com/samuel/python-ping).\
 > This version maintained at [this github repo](https://github.com/kyan001/ping3).
@@ -187,7 +187,7 @@ error.TimeToLiveExpired: Time exceeded: Time To Live expired.
 ## Command Line Execution
 
 Execute ping3 from command-line.
-Note: `ping3` needs `root` privilege to send/receive packets. You may want to use `sudo ping3`.
+Note: On some platforms, `ping3` needs root privilege to send/receive packets. You may want to use `sudo ping3`.
 
 ```sh
 $ ping3 --help  # -h/--help. Command-line help message.
@@ -212,7 +212,7 @@ ping '8.8.8.8' ... 2ms
 ping '8.8.8.8' ... 6ms
 ping '8.8.8.8' ... 5ms
 
-$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent.  Default is 4.
+$ ping3 -c 1 example.com  # -c/--count. How many pings should be sent. Default is 4.
 ping 'example.com' ... 215ms
 
 $ ping3 -c 0 example.com  # Ping endlessly (0 means infinite loops). Using `ctrl + c` to stop manully.
