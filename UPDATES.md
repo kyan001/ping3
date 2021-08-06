@@ -1,4 +1,6 @@
 # UPDATES
+* 2.9.2:
+    * Converted to a proper package
 * 2.9.1:
     * Bug Fix: macOS is not treated as Linux now.
 * 2.9.0:

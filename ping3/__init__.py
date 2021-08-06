@@ -12,8 +12,8 @@ import logging
 import functools
 import errno
 
-import errors
-from enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
+from . import errors
+from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
 __version__ = "2.9.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
@@ -349,7 +349,3 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
             print("{value}{unit}".format(value=int(delay), unit=unit))
         i += 1
 
-
-if __name__ == "__main__":
-    import command_line_ping3
-    command_line_ping3.main()
