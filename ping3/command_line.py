@@ -31,5 +31,6 @@ def main(assigned_args: list = None):
     for addr in args.dest_addr:
         ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface)
 
+
 if __name__ == "__main__":
     main()

@@ -226,7 +226,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP Header:", icmp_header)
         _debug("Received ICMP Payload:", icmp_payload_raw)
-        if not has_ip_header:  #  When unprivileged on Linux, ICMP ID is rewrited by kernel.
+        if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
             icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header['id'] and icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ID field.
             _debug("ICMP ID dismatch. Packet filtered out.")
@@ -348,4 +348,3 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
         else:
             print("{value}{unit}".format(value=int(delay), unit=unit))
         i += 1
-
