@@ -170,13 +170,12 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_interval(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             delay = ping3.ping("example.com")
-            self.assertIsInstance(delay, float)
             self.assertTrue(0 < delay < 0.75)  # If interval does not work, the total delay should be < 3s (4 * 0.75s)
             start_time = time.time()
             ping3.verbose_ping("example.com", interval=1)  # If interval does work, the total delay should be > 3s (3 * 1s)
             end_time = time.time()
             self.assertTrue((end_time - start_time) >= 3)  # time_expect = (count - 1) * interval
-            self.assertRegex(fake_out.getvalue(), r".*[0-9]+.*")
+            self.assertNotIn('Timeout', fake_out.getvalue())  # Ensure no timeout
 
     def test_DEBUG(self):
         with patch("ping3.DEBUG", True), patch("sys.stderr", new=io.StringIO()):

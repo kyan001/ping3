@@ -28,13 +28,13 @@ class test_ping3(unittest.TestCase):
     def test_dest_addr_1(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             command_line.main(["127.0.0.1"])
-            self.assertTrue("127.0.0.1" in fake_out.getvalue())
+            self.assertIn("127.0.0.1", fake_out.getvalue())
 
     def test_dest_addr_2(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             command_line.main(["127.0.0.1", "8.8.8.8"])
-            self.assertTrue("127.0.0.1" in fake_out.getvalue())
-            self.assertTrue("8.8.8.8" in fake_out.getvalue())
+            self.assertIn("127.0.0.1", fake_out.getvalue())
+            self.assertIn("8.8.8.8", fake_out.getvalue())
 
     def test_count(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
@@ -49,7 +49,7 @@ class test_ping3(unittest.TestCase):
     def test_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             command_line.main(['-T', '1', 'example.com'])
-            self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
+            self.assertRegex(fake_out.getvalue(), r".*Error.*")
 
     def test_size(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
@@ -61,10 +61,10 @@ class test_ping3(unittest.TestCase):
     def test_interval(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             start_time = time.time()
-            command_line.main(['-i', '1.7', 'example.com'])
+            command_line.main(['-i', '1', 'example.com'])
             end_time = time.time()
-            self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
-            self.assertFalse('Timeout' in fake_out.getvalue())
+            self.assertTrue((end_time - start_time) >= 3)  # time_expect = (count - 1) * interval
+            self.assertNotIn('Timeout', fake_out.getvalue())
 
     @unittest.skipUnless(sys.platform == 'linux', "Linux only")
     def test_interface(self):
@@ -85,9 +85,10 @@ class test_ping3(unittest.TestCase):
     def test_src_addr(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             my_ip = socket.gethostbyname(socket.gethostname())
-            dest_addr = "example.com"
-            if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
+            if my_ip in ("127.0.0.1", "127.0.1.1"):  # This may caused by /etc/hosts settings.
                 dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
+            else:
+                dest_addr = "example.com"
             command_line.main(['-S', my_ip, dest_addr])
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
@@ -97,9 +98,8 @@ class test_ping3(unittest.TestCase):
             self.assertIn("[DEBUG]", fake_err.getvalue())
 
     def test_exceptions(self):
-        with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            with self.assertRaises(errors.Timeout):
-                command_line.main(['--exceptions', '-t', '0.0001', 'example.com'])
+        with self.assertRaises(errors.Timeout):
+            command_line.main(['--exceptions', '-t', '0.0001', 'example.com'])
 
 
 if __name__ == "__main__":
