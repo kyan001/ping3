@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "3.0.0"
+__version__ = "3.0.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -265,7 +265,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
 
     Returns:
-        The delay in seconds/milliseconds or None on timeout.
+        The delay in seconds/milliseconds, False on error and None on timeout.
 
     Raises:
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
@@ -302,14 +302,14 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
         try:
             send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
             delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
-        except errors.HostUnknown as err:  # Unsolved
-            _debug(err)
-            _raise(err)
-            return False
-        except errors.PingError as err:
+        except errors.Timeout as err:
             _debug(err)
             _raise(err)
             return None
+        except errors.PingError as err:
+            _debug(err)
+            _raise(err)
+            return False
         if delay is None:
             return None
         if unit == "ms":
@@ -345,6 +345,8 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
         print(output_text, end="")
         if delay is None:
             print("Timeout > {}s".format(timeout) if timeout else "Timeout")
+        elif delay is False:
+            print("Error")
         else:
             print("{value}{unit}".format(value=int(delay), unit=unit))
         i += 1

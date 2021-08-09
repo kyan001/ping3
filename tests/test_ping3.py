@@ -21,7 +21,7 @@ class test_ping3(unittest.TestCase):
         pass
 
     def test_version(self):
-        self.assertTrue(isinstance(ping3.__version__, str))
+        self.assertIsInstance(ping3.__version__, str)
 
     def test_ping_normal(self):
         delay = ping3.ping("example.com")
@@ -47,10 +47,18 @@ class test_ping3(unittest.TestCase):
             self.assertRegex(fake_out.getvalue(), r".*Timeout \> [0-9\.]+s.*")
 
     def test_verbose_ping_timeout_exception(self):
-        with patch("sys.stdout", new=io.StringIO()):
-            with patch("ping3.EXCEPTIONS", True):
-                with self.assertRaises(errors.Timeout):
-                    ping3.verbose_ping("example.com", timeout=0.0001)
+        with patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises(errors.Timeout):
+                ping3.verbose_ping("example.com", timeout=0.0001)
+
+    def test_ping_error(self):
+        delay = ping3.ping("not.exist.com")
+        self.assertFalse(delay)
+
+    def test_ping_error_exception(self):
+        with patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises(errors.HostUnknown):
+                ping3.ping("not.exist.com")
 
     def test_ping_seq(self):
         delay = ping3.ping("example.com", seq=199)
@@ -59,6 +67,8 @@ class test_ping3(unittest.TestCase):
     def test_ping_size(self):
         delay = ping3.ping("example.com", size=100)
         self.assertIsInstance(delay, float)
+
+    def test_ping_size_exception(self):
         with self.assertRaises(OSError):
             ping3.ping("example.com", size=99999)  # most router has 1480 MTU, which is IP_Header(20) + ICMP_Header(8) + ICMP_Payload(1452)
 
@@ -66,8 +76,10 @@ class test_ping3(unittest.TestCase):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", size=100)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
-            with self.assertRaises(OSError):
-                ping3.ping("example.com", size=99999)
+
+    def test_verbose_ping_size_exception(self):
+        with self.assertRaises(OSError):
+            ping3.verbose_ping("example.com", size=99999)
 
     def test_ping_unit(self):
         delay = ping3.ping("example.com", unit="ms")
@@ -114,24 +126,26 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_src_addr(self):
         my_ip = socket.gethostbyname(socket.gethostname())
-        dest_addr = "example.com"
-        if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
+        if my_ip in ("127.0.0.1", "127.0.1.1"):  # This may caused by /etc/hosts settings.
             dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
+        else:
+            dest_addr = "example.com"
         delay = ping3.ping(dest_addr, src_addr=my_ip)
         self.assertIsInstance(delay, float)
 
     def test_verbose_ping_src_addr(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             my_ip = socket.gethostbyname(socket.gethostname())
-            dest_addr = "example.com"
-            if my_ip == "127.0.0.1" or my_ip == "127.0.1.1":  # This may caused by /etc/hosts settings.
+            if my_ip in ("127.0.0.1", "127.0.1.1"):  # This may caused by /etc/hosts settings.
                 dest_addr = my_ip  # only localhost can send and receive from 127.0.0.1 (or 127.0.1.1 on Ubuntu).
+            else:
+                dest_addr = "example.com"
             ping3.verbose_ping(dest_addr, src_addr=my_ip)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_ping_ttl(self):
         delay = ping3.ping("example.com", ttl=1)
-        self.assertIsNone(delay)
+        self.assertIn(delay, (None, False))  # When TTL expired, some routers report nothing.
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
@@ -141,12 +155,12 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", ttl=1)
-            self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
+            self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_verbose_ping_ttl_exception(self):
-        with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping("example.com", ttl=1)
-            self.assertRegex(fake_out.getvalue(), r".*Timeout.*")
+        with patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):  # When TTL expired, some routers report nothing.
+                ping3.verbose_ping("example.com", ttl=1)
 
     def test_verbose_ping_count(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
@@ -155,22 +169,14 @@ class test_ping3(unittest.TestCase):
 
     def test_verbose_ping_interval(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            delay = ping3.ping("example.com")
+            self.assertIsInstance(delay, float)
+            self.assertTrue(0 < delay < 0.75)  # If interval does not work, the total delay should be < 3s (4 * 0.75s)
             start_time = time.time()
-            ping3.verbose_ping("example.com", interval=1.7)
+            ping3.verbose_ping("example.com", interval=1)  # If interval does work, the total delay should be > 3s (3 * 1s)
             end_time = time.time()
-            self.assertTrue((end_time - start_time) >= 5.1)  # time_expect = (count - 1) * interval
-            self.assertFalse('Timeout' in fake_out.getvalue())
-
-    def test_ping_hostunknown(self):
-        not_exist_url = "not-exist.com"
-        with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            self.assertFalse(ping3.ping(not_exist_url))
-
-    def test_ping_hostunknown_exception(self):
-        with patch("sys.stdout", new=io.StringIO()):
-            with patch("ping3.EXCEPTIONS", True):
-                with self.assertRaises(errors.HostUnknown):
-                    ping3.ping("not-exist.com")
+            self.assertTrue((end_time - start_time) >= 3)  # time_expect = (count - 1) * interval
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+.*")
 
     def test_DEBUG(self):
         with patch("ping3.DEBUG", True), patch("sys.stderr", new=io.StringIO()):

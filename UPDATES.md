@@ -1,4 +1,6 @@
 # UPDATES
+* 3.0.1:
+    * Bug Fix: `verbose_ping` prints proper message on error.
 * 3.0.0:
     * Backward Compatibility: Only Command-line options changed, now the options is more like `ping` on macOS and Linux.
         * `-w`/`--wait` -> `-t`/`--timeout`.
