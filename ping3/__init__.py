@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "3.0.1"
+__version__ = "3.0.2"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -79,9 +79,9 @@ def _func_logger(func: callable) -> callable:
         pargs = ", ".join("'{}'".format(arg) if isinstance(arg, str) else arg for arg in args)
         kargs = str(kwargs) if kwargs else ""
         all_args = ", ".join((pargs, kargs)) if (pargs and kargs) else (pargs or kargs)
-        _debug("Function Called:", "{func.__name__}({})".format(all_args, func=func))
+        _debug("Function called:", "{func.__name__}({})".format(all_args, func=func))
         func_return = func(*args, **kwargs)
-        _debug("Function Returned:", "{func.__name__} -> {rtrn}".format(func=func, rtrn=func_return))
+        _debug("Function returned:", "{func.__name__} -> {rtrn}".format(func=func, rtrn=func_return))
         return func_return
 
     return wrapper
@@ -157,12 +157,12 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     Raises:
         HostUnkown: If destination address is a domain name and cannot resolved.
     """
-    _debug("Destination Address: '{}'".format(dest_addr))
+    _debug("Destination address: '{}'".format(dest_addr))
     try:
         dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
     except socket.gaierror as err:
         raise errors.HostUnknown(dest_addr) from err
-    _debug("Destination Address:", dest_addr)
+    _debug("Destination IP address:", dest_addr)
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
     padding = (size - struct.calcsize(ICMP_TIME_FORMAT)) * "Q"  # Using double to store current time.
@@ -170,8 +170,8 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
     # Don't know why I need socket.htons() on real_checksum since ICMP_HEADER_FORMAT already in Network Bytes Order (big-endian)
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, socket.htons(real_checksum), icmp_id, seq)  # Put real checksum into ICMP header.
-    _debug("Sent ICMP Header:", read_icmp_header(icmp_header))
-    _debug("Sent ICMP Payload:", icmp_payload)
+    _debug("Sent ICMP header:", read_icmp_header(icmp_header))
+    _debug("Sent ICMP payload:", icmp_payload)
     packet = icmp_header + icmp_payload
     sock.sendto(packet, (dest_addr, 0))  # addr = (ip, port). Port is 0 respectively the OS default behavior will be used.
 
@@ -208,7 +208,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         _debug("Unprivileged on Linux")
         icmp_header_slice = slice(0, struct.calcsize(ICMP_HEADER_FORMAT))  # [0:8]
     timeout_time = time.time() + timeout  # Exactly time when timeout.
-    _debug("Timeout time:", time.ctime(timeout_time))
+    _debug("Timeout time: {} ({})".format(time.ctime(timeout_time), timeout_time))
     while True:
         timeout_left = timeout_time - time.time()  # How many seconds left until timeout.
         timeout_left = timeout_left if timeout_left > 0 else 0  # Timeout must be non-negative
@@ -217,15 +217,16 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout)
         time_recv = time.time()
+        _debug("Received time: {} ({}))".format(time.ctime(time_recv), time_recv))
         recv_data, addr = sock.recvfrom(1500)  # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
         if has_ip_header:
             ip_header_raw = recv_data[ip_header_slice]
             ip_header = read_ip_header(ip_header_raw)
-            _debug("Received IP Header:", ip_header)
+            _debug("Received IP header:", ip_header)
         icmp_header_raw, icmp_payload_raw = recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
         icmp_header = read_icmp_header(icmp_header_raw)
-        _debug("Received ICMP Header:", icmp_header)
-        _debug("Received ICMP Payload:", icmp_payload_raw)
+        _debug("Received ICMP header:", icmp_header)
+        _debug("Received ICMP payload:", icmp_payload_raw)
         if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
             icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header['id'] and icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ID field.
@@ -245,8 +246,9 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
                 continue
             if icmp_header['type'] == IcmpType.ECHO_REPLY:
                 time_sent = struct.unpack(ICMP_TIME_FORMAT, icmp_payload_raw[0:struct.calcsize(ICMP_TIME_FORMAT)])[0]
+                _debug("Received sent time: {} ({})".format(time.ctime(time_sent), time_sent))
                 return time_recv - time_sent
-        _debug("Uncatched ICMP Packet:", icmp_header)
+        _debug("Uncatched ICMP packet:", icmp_header)
 
 
 @_func_logger
