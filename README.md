@@ -54,7 +54,7 @@ pip uninstall ping3  # uninstall ping3
 >>> from ping3 import ping, verbose_ping
 
 >>> ping('example.com')  # Returns delay in seconds.
-0.215697261510079666
+0.215697261510079666  # `0.0` returned means the delay is lower than the precision of `time.time()`.
 
 >>> ping('not.exist.com')  # If host unknown (cannot resolve), returns False.
 False
