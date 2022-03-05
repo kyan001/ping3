@@ -187,6 +187,11 @@ ping3.errors.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
 [... Traceback ...]
 ping3.errors.TimeToLiveExpired: Time exceeded: Time To Live expired.
 
+>>> try:
+>>>     ping3.ping("example.com", ttl=1)
+>>> except ping3.errors.TimeToLiveExpired as err:
+>>>     print(err.ip_header["src_addr"])  # Where the TTL expired happened.
+
 >>> help(ping3.errors)  # More info about exceptions.
 ```
 

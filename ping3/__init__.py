@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "3.0.2"
+__version__ = "4.0.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -223,6 +223,8 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             ip_header_raw = recv_data[ip_header_slice]
             ip_header = read_ip_header(ip_header_raw)
             _debug("Received IP header:", ip_header)
+        else:
+            ip_header = None
         icmp_header_raw, icmp_payload_raw = recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP header:", icmp_header)
@@ -231,12 +233,12 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header['type'] == IcmpType.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
             if icmp_header['code'] == IcmpTimeExceededCode.TTL_EXPIRED:
-                raise errors.TimeToLiveExpired()  # Some router does not report TTL expired and then timeout shows.
+                raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
         if icmp_header['type'] == IcmpType.DESTINATION_UNREACHABLE:  # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
             if icmp_header['code'] == IcmpDestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
-                raise errors.DestinationHostUnreachable()
-            raise errors.DestinationUnreachable()
+                raise errors.DestinationHostUnreachable(ip_header=ip_header, icmp_header=icmp_header)
+            raise errors.DestinationUnreachable(ip_header=ip_header, icmp_header=icmp_header)
         if icmp_header['id']:
             if icmp_header['type'] == IcmpType.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
                 _debug("ECHO_REQUEST received. Packet filtered out.")
