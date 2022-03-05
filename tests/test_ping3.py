@@ -8,7 +8,6 @@ import socket
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ping3  # noqa: linter (pycodestyle) should not lint this line.
-from ping3 import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 
 class test_ping3(unittest.TestCase):
@@ -38,7 +37,7 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_timeout_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises(errors.Timeout):
+            with self.assertRaises(ping3.errors.Timeout):
                 ping3.ping("example.com", timeout=0.0001)
 
     def test_verbose_ping_timeout(self):
@@ -48,7 +47,7 @@ class test_ping3(unittest.TestCase):
 
     def test_verbose_ping_timeout_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises(errors.Timeout):
+            with self.assertRaises(ping3.errors.Timeout):
                 ping3.verbose_ping("example.com", timeout=0.0001)
 
     def test_ping_error(self):
@@ -57,8 +56,10 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_error_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises(errors.HostUnknown):
+            try:
                 ping3.ping("not.exist.com")
+            except ping3.errors.HostUnknown as e:
+                self.assertEqual(e.dest_addr, "not.exist.com")
 
     def test_ping_seq(self):
         delay = ping3.ping("example.com", seq=199)
@@ -91,7 +92,7 @@ class test_ping3(unittest.TestCase):
             ping3.verbose_ping("example.com", unit="ms")
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
-    @unittest.skipUnless(sys.platform == 'linux', "Linux only")
+    @unittest.skipUnless(sys.platform == "linux", "Linux only")
     def test_ping_interface(self):
         try:
             route_cmd = os.popen("ip -o -4 route show to default")
@@ -102,12 +103,12 @@ class test_ping3(unittest.TestCase):
         try:
             socket.if_nametoindex(my_interface)  # test if the interface exists.
         except OSError:
-            self.fail('Interface Name Error: {}'.format(my_interface))
+            self.fail("Interface Name Error: {}".format(my_interface))
         dest_addr = "example.com"
         delay = ping3.ping(dest_addr, interface=my_interface)
         self.assertIsInstance(delay, float)
 
-    @unittest.skipUnless(sys.platform == 'linux', "Linux only")
+    @unittest.skipUnless(sys.platform == "linux", "Linux only")
     def test_verbose_ping_interface(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             try:
@@ -119,7 +120,7 @@ class test_ping3(unittest.TestCase):
             try:
                 socket.if_nametoindex(my_interface)  # test if the interface exists.
             except OSError:
-                self.fail('Interface Name Error: {}'.format(my_interface))
+                self.fail("Interface Name Error: {}".format(my_interface))
             dest_addr = "example.com"
             ping3.verbose_ping(dest_addr, interface=my_interface)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
@@ -149,7 +150,7 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):  # When TTL expired, some routers report nothing.
+            with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.ping("example.com", ttl=1)
 
     def test_verbose_ping_ttl(self):
@@ -158,8 +159,8 @@ class test_ping3(unittest.TestCase):
             self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_verbose_ping_ttl_exception(self):
-        with patch("ping3.EXCEPTIONS", True):
-            with self.assertRaises((errors.TimeToLiveExpired, errors.Timeout)):  # When TTL expired, some routers report nothing.
+        with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.verbose_ping("example.com", ttl=1)
 
     def test_verbose_ping_count(self):
@@ -175,7 +176,7 @@ class test_ping3(unittest.TestCase):
             ping3.verbose_ping("example.com", interval=1)  # If interval does work, the total delay should be > 3s (3 * 1s)
             end_time = time.time()
             self.assertTrue((end_time - start_time) >= 3)  # time_expect = (count - 1) * interval
-            self.assertNotIn('Timeout', fake_out.getvalue())  # Ensure no timeout
+            self.assertNotIn("Timeout", fake_out.getvalue())  # Ensure no timeout
 
     def test_DEBUG(self):
         with patch("ping3.DEBUG", True), patch("sys.stderr", new=io.StringIO()):
