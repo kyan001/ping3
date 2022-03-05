@@ -229,9 +229,6 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         _debug("Received ICMP payload:", icmp_payload_raw)
         if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
             icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
-        if icmp_header['id'] and icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ID field.
-            _debug("ICMP ID dismatch. Packet filtered out.")
-            continue
         if icmp_header['type'] == IcmpType.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
             if icmp_header['code'] == IcmpTimeExceededCode.TTL_EXPIRED:
                 raise errors.TimeToLiveExpired()  # Some router does not report TTL expired and then timeout shows.
@@ -240,9 +237,15 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
             if icmp_header['code'] == IcmpDestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
                 raise errors.DestinationHostUnreachable()
             raise errors.DestinationUnreachable()
-        if icmp_header['id'] and icmp_header['seq'] == seq:  # ECHO_REPLY should match the SEQ field.
+        if icmp_header['id']:
             if icmp_header['type'] == IcmpType.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
                 _debug("ECHO_REQUEST received. Packet filtered out.")
+                continue
+            if icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ICMP ID field.
+                _debug("ICMP ID dismatch. Packet filtered out.")
+                continue
+            if icmp_header['seq'] != seq:  # ECHO_REPLY should match the ICMP SEQ field.
+                _debug("IMCP SEQ dismatch. Packet filtered out.")
                 continue
             if icmp_header['type'] == IcmpType.ECHO_REPLY:
                 time_sent = struct.unpack(ICMP_TIME_FORMAT, icmp_payload_raw[0:struct.calcsize(ICMP_TIME_FORMAT)])[0]
