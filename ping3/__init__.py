@@ -161,7 +161,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
     try:
         dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
     except socket.gaierror as err:
-        raise errors.HostUnknown(dest_addr) from err
+        raise errors.HostUnknown(dest_addr=dest_addr) from err
     _debug("Destination IP address:", dest_addr)
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
     icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
@@ -215,7 +215,7 @@ def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> floa
         _debug("Timeout left: {:.2f}s".format(timeout_left))
         selected = select.select([sock, ], [], [], timeout_left)  # Wait until sock is ready to read or time is out.
         if selected[0] == []:  # Timeout
-            raise errors.Timeout(timeout)
+            raise errors.Timeout(timeout=timeout)
         time_recv = time.time()
         _debug("Received time: {} ({}))".format(time.ctime(time_recv), time_recv))
         recv_data, addr = sock.recvfrom(1500)  # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
