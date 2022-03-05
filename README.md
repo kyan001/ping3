@@ -190,7 +190,7 @@ ping3.errors.TimeToLiveExpired: Time exceeded: Time To Live expired.
 >>> try:
 >>>     ping3.ping("example.com", ttl=1)
 >>> except ping3.errors.TimeToLiveExpired as err:
->>>     print(err.ip_header["src_addr"])  # TimeToLiveExpired, DestinationUnreachable and DestinationHostUnreachable has ip_header and icmp_header attached.
+>>>     print(err.ip_header["src_addr"])  # TimeToLiveExpired, DestinationUnreachable and DestinationHostUnreachable have ip_header and icmp_header attached.
 1.2.3.4  # IP address where the TTL happened.
 
 >>> help(ping3.errors)  # More info about exceptions.
