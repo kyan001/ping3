@@ -183,14 +183,15 @@ ping3.errors.Timeout: Request timeout for ICMP packet. (Timeout = 0.0001s)
 [... Traceback ...]
 ping3.errors.HostUnknown: Cannot resolve: Unknown host. (Host = not.exist.com)
 
->>> ping3.ping("example.com", ttl=1)
+>>> ping3.ping("example.com", ttl=1)  # Linux need root privilege to receive TTL expired. Windows cannot get TTL expired.
 [... Traceback ...]
 ping3.errors.TimeToLiveExpired: Time exceeded: Time To Live expired.
 
 >>> try:
 >>>     ping3.ping("example.com", ttl=1)
 >>> except ping3.errors.TimeToLiveExpired as err:
->>>     print(err.ip_header["src_addr"])  # Where the TTL expired happened.
+>>>     print(err.ip_header["src_addr"])  # TimeToLiveExpired, DestinationUnreachable and DestinationHostUnreachable has ip_header and icmp_header attached.
+1.2.3.4  # IP address where the TTL happened.
 
 >>> help(ping3.errors)  # More info about exceptions.
 ```
