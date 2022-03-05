@@ -1,6 +1,6 @@
 # UPDATES
 * 4.0.0:
-    * Feature: Now TimeToLiveExpired, DestinationUnreachable and DestinationHostUnreachable have `ip_header` and `icmp_header` attached. ( #48 )
+    * Feature: Now errors `TimeToLiveExpired`, `DestinationUnreachable` and `DestinationHostUnreachable` have `ip_header` and `icmp_header` attached. ( #48 )
 * 3.0.1:
     * Bug Fix: `verbose_ping` prints proper message on error.
 * 3.0.0:
