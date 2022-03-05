@@ -144,20 +144,24 @@ class test_ping3(unittest.TestCase):
             ping3.verbose_ping(dest_addr, src_addr=my_ip)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ttl(self):
         delay = ping3.ping("example.com", ttl=1)
         self.assertIn(delay, (None, False))  # When TTL expired, some routers report nothing.
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.ping("example.com", ttl=1)
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping("example.com", ttl=1)
             self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ttl_exception(self):
         with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
