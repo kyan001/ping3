@@ -20,6 +20,12 @@ Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
 pip install ping3  # install ping
 ```
 
+* Or if you have Capabilities framework on your system you can give it to python binary. Use readlink beacuse setcap works on actual file, not link.
+
+```
+sudo setcap cap_net_raw+ep $(readlink -f $(which python))
+```
+
 ```python
 >>> from ping3 import ping, verbose_ping
 >>> ping('example.com')  # Returns delay in seconds.
