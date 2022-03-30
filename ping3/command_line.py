@@ -25,12 +25,13 @@ def main(assigned_args: list = None):
     parser.add_argument("-s", "--size", dest="size", metavar="SIZE", type=int, default=56, help="The ICMP packet payload size in bytes. Default is 56.")
     parser.add_argument("-D", "--debug", action="store_true", dest="debug", help="Turn on DEBUG mode.")
     parser.add_argument("-E", "--exceptions", action="store_true", dest="exceptions", help="Turn on EXCEPTIONS mode.")
+    parser.add_argument("-X", "--eXtended", action="store_true", dest="extended", help="Turn on EXTENDED mode.")
     args = parser.parse_args(assigned_args)
     ping3.DEBUG = args.debug
     ping3.EXCEPTIONS = args.exceptions
 
     for addr in args.dest_addr:
-        ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface, src_addr=args.src_addr)
+        ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface, src_addr=args.src_addr, )
 
 
 if __name__ == "__main__":
