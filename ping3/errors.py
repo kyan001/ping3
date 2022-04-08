@@ -27,7 +27,7 @@ class DestinationHostUnreachable(DestinationUnreachable):
         self.ip_header = ip_header
         self.icmp_header = icmp_header
         self.message = message if self.ip_header is None else message + " (Host='{}')".format(self.ip_header.get("src_addr"))
-        super().__init__(self.message)
+        super().__init__(message=self.message)
 
 
 class HostUnknown(PingError):
