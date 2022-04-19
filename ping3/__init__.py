@@ -366,7 +366,7 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
     """
     resp=myData()
     timeout = kwargs.get("timeout")
-    src = kwargs.get("src")
+    src = kwargs.get("src_addr")
     unit = kwargs.setdefault("unit", "ms")
     i = 0
     while i < count or count == 0:
