@@ -1,4 +1,8 @@
 # UPDATES
+* 4.0.2:
+    * Bug Fix: arg `src` in `verbose_ping` should be `src_addr`. ( #57 )
+* 4.0.1:
+    * Bug Fix: `message` should be the first argument in ping3.errors. ( #55 )
 * 4.0.0:
     * Feature: Now errors `TimeToLiveExpired`, `DestinationUnreachable` and `DestinationHostUnreachable` have `ip_header` and `icmp_header` attached. ( #48 )
 * 3.0.1:
