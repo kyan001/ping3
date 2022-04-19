@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "4.0.0E"
+__version__ = "4.0.2"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -89,7 +89,7 @@ def _func_logger(func: callable) -> callable:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        pargs = ", ".join("'{}'".format(arg) if isinstance(arg, str) else arg for arg in args)
+        pargs = ", ".join(str(arg) for arg in args)
         kargs = str(kwargs) if kwargs else ""
         all_args = ", ".join((pargs, kargs)) if (pargs and kargs) else (pargs or kargs)
         _debug("Function called:", "{func.__name__}({})".format(all_args, func=func))
