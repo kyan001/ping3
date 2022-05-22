@@ -3,7 +3,6 @@ import multiprocessing
 import os
 import sys
 
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ping3  # noqa: linter (pycodestyle) should not lint this line.
 
@@ -19,6 +18,7 @@ def ping_in_thread_or_process(host):
         time.sleep(1)
         print(host, delay)
 
+
 def standard_delay():
     for h in HOSTS:
         print('Standard Delay:', h, ping3.ping(h, unit='ms'))
@@ -28,6 +28,7 @@ def multi_processing_ping():
     for h in HOSTS:
         p = multiprocessing.Process(target=ping_in_thread_or_process, args=(h,))
         p.start()
+
 
 if __name__ == '__main__':
     standard_delay()

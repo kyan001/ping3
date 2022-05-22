@@ -1,0 +1,50 @@
+name: Unit Tests
+on:
+  push:
+    branchs: [master]
+  workflow_dispatch:
+    branchs: [master]
+jobs:
+  ping3-test-ping:
+    runs-on: macos-latest  # ubuntu-latest and windows-latest are blocking inbound ICMP packages. More: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#cloud-hosts-for-github-hosted-runners
+    name: Ping3 Ping Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Echo Python Version
+        run: python --version
+      - run: sudo python tests/test_ping3.py  # privileged
+      - run: python tests/test_ping3.py  # unprivileged
+  ping3-test-command-line:
+    runs-on: macos-latest
+    name: Ping3 Command Line Test
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Echo Python Version
+        run: python --version
+      - run: sudo python tests/test_command_line.py  # privileged
+      - run: python tests/test_command_line.py  # unprivileged
+  ping3-test-benchmark:
+    runs-on: macos-latest
+    name: Ping3 Benchmark Test
+    needs: [ping3-test-ping, ping3-test-command-line]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v3
+      - name: Set up Python
+        uses: actions/setup-python@v3
+        with:
+          python-version: '3.x'
+      - name: Echo Python Version
+        run: python --version
+      - run: sudo python tests/test_benchmark.py  # privileged
+      - run: python tests/test_benchmark.py  # unprivileged

@@ -1,5 +1,9 @@
 import os
+import sys
 import timeit
+
+sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import ping3  # noqa: linter (pycodestyle) should not lint this line.
 
 dev_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 stmt = "ping3.ping('127.0.0.1')"
