@@ -1,9 +1,5 @@
 name: Unit Tests
-on:
-  push:
-    branchs: [master]
-  workflow_dispatch:
-    branchs: [master]
+on: [push, workflow_dispatch]
 jobs:
   ping3-test-ping:
     runs-on: macos-latest  # ubuntu-latest and windows-latest are blocking inbound ICMP packets. More: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#cloud-hosts-for-github-hosted-runners
