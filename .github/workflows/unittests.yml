@@ -6,7 +6,7 @@ on:
     branchs: [master]
 jobs:
   ping3-test-ping:
-    runs-on: macos-latest  # ubuntu-latest and windows-latest are blocking inbound ICMP packages. More: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#cloud-hosts-for-github-hosted-runners
+    runs-on: macos-latest  # ubuntu-latest and windows-latest are blocking inbound ICMP packets. More: https://docs.github.com/en/actions/using-github-hosted-runners/about-github-hosted-runners#cloud-hosts-for-github-hosted-runners
     name: Ping3 Ping Test
     steps:
       - name: Checkout
