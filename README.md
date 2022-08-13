@@ -14,7 +14,7 @@ Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
 
 ## Get Started
 
-* If you met "permission denied", you may need to run this as root.
+* If you met "permission denied", you may need to run this as root. Alternatively see [this](./TROUBLESHOOTING.MD#permission-denied-on-linux) for troubleshooting on linux.
 
 ```sh
 pip install ping3  # install ping
