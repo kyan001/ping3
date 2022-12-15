@@ -10,7 +10,7 @@ Ping3 is a pure python3 version of ICMP ping implementation using raw socket.\
 > The Python2 version originally from [here](http://github.com/samuel/python-ping).\
 > This version maintained at [this github repo](https://github.com/kyan001/ping3).
 
-[Update Log](UPDATES.md)
+[CHANGELOG](CHANGELOG.md)
 
 ## Get Started
 
