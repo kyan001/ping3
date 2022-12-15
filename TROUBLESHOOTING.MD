@@ -19,16 +19,19 @@ sudo sysctl net.ipv4.ping_group_range='0 4294967295'
 ```
 
 Some systems (e.g. Debian) may have issues with this, returning:
+
 ```sh
 sysctl: setting key "net.ipv4.ping_group_range": Invalid argument
 ```
 
 In this case, try:
+
 ```sh
 sudo sysctl net.ipv4.ping_group_range='0   2147483647'
 ```
 
 To *permanently* set this parameter:
+
 ```sh
 echo "# allow all users to create icmp sockets\n net.ipv4.ping_group_range=0 2147483647" | sudo tee -a /etc/sysctl.d/ping_group.conf
 ```
