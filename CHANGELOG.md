@@ -1,4 +1,6 @@
 # Change Log
+* 4.0.4:
+    * Improvement: Replace setup.py by pyproject.toml
 * 4.0.2:
     * Bug Fix: arg `src` in `verbose_ping` should be `src_addr`. ( #57 )
 * 4.0.1:
