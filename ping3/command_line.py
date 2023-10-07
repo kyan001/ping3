@@ -1,4 +1,5 @@
 import argparse
+import sys
 
 import ping3
 
@@ -30,7 +31,13 @@ def main(assigned_args: list = None):
     ping3.EXCEPTIONS = args.exceptions
 
     for addr in args.dest_addr:
-        ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface, src_addr=args.src_addr)
+        try:
+            ping3.verbose_ping(addr, count=args.count, ttl=args.ttl, timeout=args.timeout, size=args.size, interval=args.interval, interface=args.interface, src_addr=args.src_addr)
+        except PermissionError:
+            if args.exceptions:
+                raise
+            else:
+                print(f"PermissionError (destination {addr}): in your system you might need to use root privileges to use ping3", file=sys.stderr)
 
 
 if __name__ == "__main__":
