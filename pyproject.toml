@@ -5,7 +5,7 @@ build-backend = "setuptools.build_meta"
 [project]
 name = "ping3"
 description = "A pure python3 version of ICMP ping implementation using raw socket."
-requires-python = ">=3"
+requires-python = ">=3.5"
 readme = "README.md"
 keywords = ["python3", "ping", "icmp", "socket", "tool"]
 license = {file = "LICENSE"}

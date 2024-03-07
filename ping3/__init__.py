@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "4.0.4"
+__version__ = "4.0.5"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file.
@@ -140,7 +140,7 @@ def read_ip_header(raw: bytes) -> dict:
 
 
 @_func_logger
-def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: int):
+def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, size: int):
     """Sends one ping to the given destination.
 
     ICMP Header (bits): type (8), code (8), checksum (16), id (16), sequence (16)
@@ -177,7 +177,7 @@ def send_one_ping(sock: socket, dest_addr: str, icmp_id: int, seq: int, size: in
 
 
 @_func_logger
-def receive_one_ping(sock: socket, icmp_id: int, seq: int, timeout: int) -> float:
+def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) -> float:
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
