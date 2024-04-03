@@ -3,12 +3,12 @@ import argparse
 import ping3
 
 
-def main(assigned_args: list = None):
+def main(assigned_args: list[str] = []) -> None:
     """
     Parse and execute the call from command-line.
 
     Args:
-        assigned_args: List of strings to parse. The default is taken from sys.argv.
+        assigned_args (list[str]): List of strings to parse. The default is taken from sys.argv.
 
     Returns:
         Formatted ping results printed.

@@ -15,10 +15,10 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "4.0.5"
+__version__ = "4.0.6"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
-LOGGER = None  # LOGGER: Record logs into console or file.
+LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
 
 IP_HEADER_FORMAT = "!BBHHHBBHII"
 ICMP_HEADER_FORMAT = "!BBHHH"  # According to netinet/ip_icmp.h. !=network byte order(big-endian), B=unsigned char, H=unsigned short
@@ -26,11 +26,11 @@ ICMP_TIME_FORMAT = "!d"  # d=double
 SOCKET_SO_BINDTODEVICE = 25  # socket.SO_BINDTODEVICE
 
 
-def _debug(*args, **kwargs):
+def _debug(*args) -> None:
     """Print debug info to stdout if `ping3.DEBUG` is True.
 
     Args:
-        *args: Any. Usually are strings or objects that can be converted to str.
+        *args (any): Usually are strings or objects that can be converted to str.
     """
     def get_logger():
         logger = logging.getLogger(__name__)
@@ -52,11 +52,11 @@ def _debug(*args, **kwargs):
     LOGGER.debug(message)
 
 
-def _raise(err):
+def _raise(err: Exception) -> None:
     """Raise exception if `ping3.EXCEPTIONS` is True.
 
     Args:
-        err: Exception.
+        err (Exception): Exception to be raised.
 
     Raise:
         Exception: Exception passed in args will be raised if `ping3.EXCEPTIONS` is True.
@@ -65,14 +65,14 @@ def _raise(err):
         raise err
 
 
-def _func_logger(func: callable) -> callable:
+def _func_logger(func):
     """Decorator that log function calls for debug
 
     Args:
-        func: Function to be decorated.
+        func (callable): Function to be decorated.
 
     Returns:
-        Decorated function.
+        callable: Decorated function.
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
@@ -94,7 +94,7 @@ def checksum(source: bytes) -> int:
     RFC792: https://tools.ietf.org/html/rfc792
 
     Args:
-        source: Bytes. The input to be calculated.
+        source (Bytes): The input to be calculated.
 
     Returns:
         int: Calculated checksum.
@@ -111,10 +111,10 @@ def read_icmp_header(raw: bytes) -> dict:
     """Get information from raw ICMP header data.
 
     Args:
-        raw: Bytes. Raw data of ICMP header.
+        raw (Bytes): Raw data of ICMP header.
 
     Returns:
-        A map contains the infos from the raw header.
+        dict: A map contains the infos from the raw header.
     """
     icmp_header_keys = ('type', 'code', 'checksum', 'id', 'seq')
     return dict(zip(icmp_header_keys, struct.unpack(ICMP_HEADER_FORMAT, raw)))
@@ -124,10 +124,10 @@ def read_ip_header(raw: bytes) -> dict:
     """Get information from raw IP header data.
 
     Args:
-        raw: Bytes. Raw data of IP header.
+        raw (Bytes): Raw data of IP header.
 
     Returns:
-        A map contains the infos from the raw header.
+        dict: A map contains the infos from the raw header.
     """
     def stringify_ip(ip: int) -> str:
         return ".".join(str(ip >> offset & 0xff) for offset in (24, 16, 8, 0))  # str(ipaddress.ip_address(ip))
@@ -140,7 +140,7 @@ def read_ip_header(raw: bytes) -> dict:
 
 
 @_func_logger
-def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, size: int):
+def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, size: int) -> None:
     """Sends one ping to the given destination.
 
     ICMP Header (bits): type (8), code (8), checksum (16), id (16), sequence (16)
@@ -148,11 +148,11 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     ICMP Wikipedia: https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol
 
     Args:
-        sock: Socket.
-        dest_addr: The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
-        icmp_id: ICMP packet id. Calculated from Process ID and Thread ID.
-        seq: ICMP packet sequence, usually increases from 0 in the same process.
-        size: The ICMP packet payload size in bytes. Note this is only for the payload part.
+        sock (socket.socket): Socket.
+        dest_addr (str): The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
+        icmp_id (int): ICMP packet id. Calculated from Process ID and Thread ID.
+        seq (int): ICMP packet sequence, usually increases from 0 in the same process.
+        size (int): The ICMP packet payload size in bytes. Note this is only for the payload part.
 
     Raises:
         HostUnkown: If destination address is a domain name and cannot resolved.
@@ -177,7 +177,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
 
 @_func_logger
-def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) -> float:
+def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) -> float | None:
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
@@ -186,13 +186,13 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) 
     ToS (Type of Service) in IP header for ICMP is 0. Protocol in IP header for ICMP is 1.
 
     Args:
-        sock: The same socket used for send the ping.
-        icmp_id: ICMP packet id. Sent packet id should be identical with received packet id.
-        seq: ICMP packet sequence. Sent packet sequence should be identical with received packet sequence.
-        timeout: Timeout in seconds.
+        sock (socket.socket): The same socket used for send the ping.
+        icmp_id (int): ICMP packet id. Sent packet id should be identical with received packet id.
+        seq (int): ICMP packet sequence. Sent packet sequence should be identical with received packet sequence.
+        timeout (int): Timeout in seconds.
 
     Returns:
-        The delay in seconds or None on timeout.
+        float | None: The delay in seconds or None on timeout.
 
     Raises:
         TimeToLiveExpired: If the Time-To-Live in IP Header is not large enough for destination.
@@ -257,22 +257,22 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) 
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None, ttl: int = None, seq: int = 0, size: int = 56, interface: str = None) -> float:
+def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl: int | None = None, seq: int = 0, size: int = 56, interface: str = "") -> float | None | bool:
     """
     Send one ping to destination address with the given timeout.
 
     Args:
-        dest_addr: The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
-        timeout: Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4)
-        unit: The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
-        src_addr: The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default None)
-        interface: LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default None)
-        ttl: The Time-To-Live of the outgoing packet. Default is None, which means using OS default ttl -- 64 onLinux and macOS, and 128 on Windows. (default None)
-        seq: ICMP packet sequence, usually increases from 0 in the same process. (default 0)
-        size: The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
+        dest_addr (str): The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
+        timeout (int): Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4)
+        unit (str): The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
+        src_addr (str): The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default "")
+        interface (str): LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default "")
+        ttl (int | None): The Time-To-Live of the outgoing packet. Default is None, which means using OS default ttl -- 64 onLinux and macOS, and 128 on Windows. (default None)
+        seq (int): ICMP packet sequence, usually increases from 0 in the same process. (default 0)
+        size (int): The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
 
     Returns:
-        The delay in seconds/milliseconds, False on error and None on timeout.
+        float | None | False: The delay in seconds/milliseconds, False on error and None on timeout.
 
     Raises:
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
@@ -325,17 +325,17 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = None
 
 
 @_func_logger
-def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **kwargs):
+def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **kwargs) -> None:
     """
     Send pings to destination address with the given timeout and display the result.
 
     Args:
-        dest_addr: The destination address. Ex. "192.168.1.1"/"example.com"
-        count: How many pings should be sent. 0 means infinite loops until manually stopped. Default is 4, same as Windows CMD. (default 4)
-        interval: How many seconds between two packets. Default is 0, which means send the next packet as soon as the previous one responsed. (default 0)
-        *args and **kwargs: And all the other arguments available in ping() except `seq`.
+        dest_addr (str): The destination address. Ex. "192.168.1.1"/"example.com"
+        count (int): How many pings should be sent. 0 means infinite loops until manually stopped. Default is 4, same as Windows CMD. (default 4)
+        interval (float): How many seconds between two packets. Default is 0, which means send the next packet as soon as the previous one responsed. (default 0)
+        *args and **kwargs (any): And all the other arguments available in ping() except `seq`.
 
-    Returns:
+    Output:
         Formatted ping results printed.
     """
     timeout = kwargs.get("timeout")

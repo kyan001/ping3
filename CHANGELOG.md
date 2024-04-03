@@ -1,8 +1,12 @@
 # Change Log
+* 4.0.6:
+    * Bug Fix: Type hint and comments refines.
+* 4.0.5:
+    * Bug Fix: Type hint refines.
 * 4.0.4:
     * Improvement: Replace setup.py by pyproject.toml
 * 4.0.2:
-    * Bug Fix: arg `src` in `verbose_ping` should be `src_addr`. ( #57 )
+    * Bug Fix: Arg `src` in `verbose_ping` should be `src_addr`. ( #57 )
 * 4.0.1:
     * Bug Fix: `message` should be the first argument in ping3.errors. ( #55 )
 * 4.0.0:
