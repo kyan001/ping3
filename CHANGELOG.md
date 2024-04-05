@@ -1,4 +1,6 @@
 # Change Log
+* 4.0.7:
+    * Bug Fix: Remove unsupported type hints in lower version of Python.
 * 4.0.6:
     * Bug Fix: Type hint and comments refines.
 * 4.0.5:

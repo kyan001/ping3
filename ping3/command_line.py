@@ -3,7 +3,7 @@ import argparse
 import ping3
 
 
-def main(assigned_args: list[str] = []) -> None:
+def main(assigned_args: list = []) -> None:
     """
     Parse and execute the call from command-line.
 

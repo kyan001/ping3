@@ -15,7 +15,7 @@ import errno
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
 
-__version__ = "4.0.6"
+__version__ = "4.0.7"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -177,7 +177,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
 
 @_func_logger
-def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) -> float | None:
+def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
@@ -257,7 +257,7 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) 
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl: int | None = None, seq: int = 0, size: int = 56, interface: str = "") -> float | None | bool:
+def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl= None, seq: int = 0, size: int = 56, interface: str = ""):
     """
     Send one ping to destination address with the given timeout.
 
@@ -325,7 +325,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
 
 
 @_func_logger
-def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **kwargs) -> None:
+def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **kwargs):
     """
     Send pings to destination address with the given timeout and display the result.
 
