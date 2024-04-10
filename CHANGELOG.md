@@ -1,10 +1,12 @@
 # Change Log
+* 4.0.8:
+    * Bug Fix: Command does not respect options with `-v/--version` and `-h/--help`. ( #80 )
 * 4.0.7:
-    * Bug Fix: Remove unsupported type hints in lower version of Python.
+    * Bug Fix: Remove unsupported type hints in lower version of Python. ( #79 )
 * 4.0.6:
-    * Bug Fix: Type hint and comments refines.
+    * Bug Fix: Type hint and comments refines. ( #78 )
 * 4.0.5:
-    * Bug Fix: Type hint refines.
+    * Bug Fix: Type hint refines. ( #78 )
 * 4.0.4:
     * Improvement: Replace setup.py by pyproject.toml
 * 4.0.2:
