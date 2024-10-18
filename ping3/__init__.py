@@ -11,6 +11,7 @@ import threading
 import logging
 import functools
 import errno
+from typing import Optional, Union
 
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
@@ -177,7 +178,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
 
 @_func_logger
-def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
+def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int) -> Optional[float]:
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
@@ -257,7 +258,7 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl= None, seq: int = 0, size: int = 56, interface: str = ""):
+def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl: Optional[int] = None, seq: int = 0, size: int = 56, interface: str = "") -> Union[float, None, bool]:
     """
     Send one ping to destination address with the given timeout.
 
