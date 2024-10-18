@@ -43,5 +43,8 @@ py-modules = ["ping3"]
 [tool.setuptools.dynamic]
 version = {attr = "ping3.__version__"}
 
+[tool.setuptools.package-data]
+"ping3" = ["py.typed"]
+
 [tool.setuptools.packages.find]
 exclude = ["contrib", "docs", "tests"]
