@@ -177,7 +177,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
 
 @_func_logger
-def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
+def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: float):
     """Receives the ping from the socket.
 
     IP Header (bits): version (8), type of service (8), length (16), id (16), flags (16), time to live (8), protocol (8), checksum (16), source ip (32), destination ip (32).
@@ -189,7 +189,7 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         sock (socket.socket): The same socket used for send the ping.
         icmp_id (int): ICMP packet id. Sent packet id should be identical with received packet id.
         seq (int): ICMP packet sequence. Sent packet sequence should be identical with received packet sequence.
-        timeout (int): Timeout in seconds.
+        timeout (float): Timeout in seconds.
 
     Returns:
         float | None: The delay in seconds or None on timeout.
@@ -257,13 +257,13 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl= None, seq: int = 0, size: int = 56, interface: str = ""):
+def ping(dest_addr: str, timeout: float = 4.0, unit: str = "s", src_addr: str = "", ttl= None, seq: int = 0, size: int = 56, interface: str = ""):
     """
     Send one ping to destination address with the given timeout.
 
     Args:
         dest_addr (str): The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
-        timeout (int): Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4)
+        timeout (float): Time to wait for a response, in seconds. Default is 4s, same as Windows CMD. (default 4.0)
         unit (str): The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
         src_addr (str): The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default "")
         interface (str): LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default "")
