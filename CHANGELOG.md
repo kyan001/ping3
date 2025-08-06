@@ -1,4 +1,8 @@
 # Change Log
+* 5.1.0：
+    * Feature: Support TTL (Hop Limit) for IPv6 on Linux.
+* 5.0.0:
+    * Feature: Support IPv6 ping. ( #85 )
 * 4.0.8:
     * Bug Fix: Command does not respect options with `-v/--version` and `-h/--help`. ( #80 )
 * 4.0.7:

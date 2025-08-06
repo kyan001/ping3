@@ -62,6 +62,12 @@ False
 >>> ping("224.0.0.0")  # If timed out (no reply), returns None.
 None
 
+>>> ping("2600:1406:bc00:53::b81e:94ce")  # Ping an IPv6 address.
+0.215697261510079666  # Returns delay in seconds.
+
+>>> ping('example.com', version=6)  # Force ping an IPv6 address. 4 for IPv4, 6 for IPv6. Default is None for auto-detect.
+0.215697261510079666
+
 >>> ping('example.com', timeout=10)  # Set timeout to 10 seconds. Default timeout is 4 for 4 seconds.
 0.215697261510079666
 
@@ -79,6 +85,8 @@ None
 
 >>> ping('example.com', size=56)  # Set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes. Default size is 56.
 0.215697261510079666
+
+>>> ping('
 
 >>> verbose_ping('example.com')  # Ping 4 times in a row.
 ping 'example.com' ... 215ms
@@ -135,6 +143,12 @@ ping 'example.com' ... 219ms  # wait 5 secs
 ping 'example.com' ... 217ms
 
 >>> verbose_ping('example.com', size=56)  # Set ICMP payload to 56 bytes. Default size is 56.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+>>> verbose_ping('example.com', version=6)  # Force ping an IPv6 address. 4 for IPv4, 6 for IPv6. Default is None for auto-detect.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
@@ -241,7 +255,7 @@ ping 'example.com' ... 215ms
 
 $ ping3 --count 0 example.com  # Ping endlessly (0 means infinite loops). Using `ctrl + c` to stop manully.
 ping 'example.com' ... 215ms
-...
+(*repeat*)
 
 $ ping3 --timeout 10 example.com  # -t/--timeout. Set timeout to 10 seconds. Default is 4.
 ping 'example.com' ... 215ms
@@ -274,6 +288,18 @@ ping 'example.com' ... 219ms
 ping 'example.com' ... 217ms
 
 $ ping3 --src 192.168.1.15 example.com  # -S/--src. Ping from source IP address for multiple network interfaces. Default is None.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ ping3 -4 example.com  # -4/--ipv4. Force ping an IPv4 address. Default is None for auto-detect.
+ping 'example.com' ... 215ms
+ping 'example.com' ... 216ms
+ping 'example.com' ... 219ms
+ping 'example.com' ... 217ms
+
+$ ping3 -6 example.com  # -6/--ipv6. Force ping an IPv6 address. Default is None for auto-detect.
 ping 'example.com' ... 215ms
 ping 'example.com' ... 216ms
 ping 'example.com' ... 219ms
