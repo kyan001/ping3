@@ -286,8 +286,8 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
     def detect_ip_header(sock, recv_data):
         """Detect if the received data has an IP header.
 
-        IPv4 header starts with version 4. ICMPv4 Type = 4 is deprecated. https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages
-        IPv6 header starts with version 6. ICMPv6 Type = 6 is invalid. https://en.wikipedia.org/wiki/ICMPv6#Types
+        IPv4 header first 4 bits is 4 (0b0100). ICMPv4 Type starts with 4 (64~79) is unassigned. See https://en.wikipedia.org/wiki/Internet_Control_Message_Protocol#Control_messages
+        IPv6 header first 4 bits is 6 (0b0110). ICMPv6 Type starts with 6 (96~111) is unassigned. See https://en.wikipedia.org/wiki/ICMPv6#Types
 
         Args:
             sock (socket.socket): The socket used to receive the data.
@@ -334,7 +334,7 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP header:", icmp_header)
         _debug("Received ICMP payload:", icmp_payload_raw)
-        if not has_ip_header and is_v4(sock):  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
+        if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
             icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header["type"] == icmp_type.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
             if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
