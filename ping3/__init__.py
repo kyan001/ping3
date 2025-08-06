@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.1.0"
+__version__ = "5.1.1"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -334,8 +334,6 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP header:", icmp_header)
         _debug("Received ICMP payload:", icmp_payload_raw)
-        if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
-            icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
         if icmp_header["type"] == icmp_type.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
             if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
                 raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
@@ -357,7 +355,13 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
                 _debug("ECHO_REQUEST received. Packet filtered out.")
                 continue
             _debug("ICMP ID:", icmp_header["id"], ",", "Expected:", icmp_id)
-            if icmp_header["id"] != icmp_id:  # ECHO_REPLY should match the ICMP ID field.
+            is_icmp_id_matched = icmp_header["id"] == icmp_id  # ECHO_REPLY should match the ICMP ID
+            if not is_icmp_id_matched and not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.field.
+                icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364, icmp_id is the port number of the socket.
+                is_icmp_id_matched = icmp_header["id"] == icmp_id
+                if is_icmp_id_matched:
+                    _debug("ICMP ID rewrited by kernel: {}".format(icmp_id))
+            if not is_icmp_id_matched:
                 _debug("ICMP ID dismatch. Packet filtered out.")
                 continue
             if icmp_header["seq"] != seq:  # ECHO_REPLY should match the ICMP SEQ field.
