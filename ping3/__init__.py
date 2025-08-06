@@ -11,9 +11,17 @@ import threading
 import logging
 import functools
 import errno
+import ipaddress
 
 from . import errors
-from .enums import ICMP_DEFAULT_CODE, IcmpType, IcmpTimeExceededCode, IcmpDestinationUnreachableCode
+from .enums import (
+    ICMP_DEFAULT_CODE,
+    IcmpType,
+    IcmpTimeExceededCode,
+    IcmpDestinationUnreachableCode,
+    IcmpV6DestinationUnreachableCode,
+    IcmpV6Type,
+)
 
 __version__ = "4.0.8"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
@@ -21,9 +29,12 @@ EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
 
 IP_HEADER_FORMAT = "!BBHHHBBHII"
+IPV6_HEADER_FORMAT = "!IHBB16s16s"
 ICMP_HEADER_FORMAT = "!BBHHH"  # According to netinet/ip_icmp.h. !=network byte order(big-endian), B=unsigned char, H=unsigned short
 ICMP_TIME_FORMAT = "!d"  # d=double
 SOCKET_SO_BINDTODEVICE = 25  # socket.SO_BINDTODEVICE
+# SO_TIMESTAMPNS_NEW because SO_TIMESTAMPNS_OLD (63) "returns incorrect timestamps after the year 2038 on 32 bit machines."
+SOCKET_SO_TIMESTAMPNS = 64
 
 
 def _debug(*args) -> None:
@@ -32,10 +43,11 @@ def _debug(*args) -> None:
     Args:
         *args (any): Usually are strings or objects that can be converted to str.
     """
+
     def get_logger():
         logger = logging.getLogger(__name__)
         logger.setLevel(logging.DEBUG)
-        formatter = logging.Formatter('[%(levelname)s] %(message)s')
+        formatter = logging.Formatter("[%(levelname)s] %(message)s")
         cout_handler = logging.StreamHandler()
         cout_handler.setLevel(logging.DEBUG)
         cout_handler.setFormatter(formatter)
@@ -74,6 +86,7 @@ def _func_logger(func):
     Returns:
         callable: Decorated function.
     """
+
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
         pargs = ", ".join(str(arg) for arg in args)
@@ -81,7 +94,10 @@ def _func_logger(func):
         all_args = ", ".join((pargs, kargs)) if (pargs and kargs) else (pargs or kargs)
         _debug("Function called:", "{func.__name__}({})".format(all_args, func=func))
         func_return = func(*args, **kwargs)
-        _debug("Function returned:", "{func.__name__} -> {rtrn}".format(func=func, rtrn=func_return))
+        _debug(
+            "Function returned:",
+            "{func.__name__} -> {rtrn}".format(func=func, rtrn=func_return),
+        )
         return func_return
 
     return wrapper
@@ -101,7 +117,9 @@ def checksum(source: bytes) -> int:
     """
     BITS = 16  # 16-bit long
     carry = 1 << BITS  # 0x10000
-    result = sum(source[::2]) + (sum(source[1::2]) << (BITS // 2))  # Even bytes (odd indexes) shift 1 byte to the left.
+    result = sum(source[::2]) + (
+        sum(source[1::2]) << (BITS // 2)
+    )  # Even bytes (odd indexes) shift 1 byte to the left.
     while result >= carry:  # Ones' complement sum.
         result = sum(divmod(result, carry))  # Each carry add to right most bit.
     return ~result & ((1 << BITS) - 1)  # Ensure 16-bit
@@ -116,7 +134,7 @@ def read_icmp_header(raw: bytes) -> dict:
     Returns:
         dict: A map contains the infos from the raw header.
     """
-    icmp_header_keys = ('type', 'code', 'checksum', 'id', 'seq')
+    icmp_header_keys = ("type", "code", "checksum", "id", "seq")
     return dict(zip(icmp_header_keys, struct.unpack(ICMP_HEADER_FORMAT, raw)))
 
 
@@ -129,18 +147,76 @@ def read_ip_header(raw: bytes) -> dict:
     Returns:
         dict: A map contains the infos from the raw header.
     """
-    def stringify_ip(ip: int) -> str:
-        return ".".join(str(ip >> offset & 0xff) for offset in (24, 16, 8, 0))  # str(ipaddress.ip_address(ip))
 
-    ip_header_keys = ('version', 'tos', 'len', 'id', 'flags', 'ttl', 'protocol', 'checksum', 'src_addr', 'dest_addr')
+    def stringify_ip(ip: int) -> str:
+        return ".".join(
+            str(ip >> offset & 0xFF) for offset in (24, 16, 8, 0)
+        )  # str(ipaddress.ip_address(ip))
+
+    ip_header_keys = (
+        "version",
+        "tos",
+        "len",
+        "id",
+        "flags",
+        "ttl",
+        "protocol",
+        "checksum",
+        "src_addr",
+        "dest_addr",
+    )
     ip_header = dict(zip(ip_header_keys, struct.unpack(IP_HEADER_FORMAT, raw)))
-    ip_header['src_addr'] = stringify_ip(ip_header['src_addr'])
-    ip_header['dest_addr'] = stringify_ip(ip_header['dest_addr'])
+    ip_header["src_addr"] = stringify_ip(ip_header["src_addr"])
+    ip_header["dest_addr"] = stringify_ip(ip_header["dest_addr"])
     return ip_header
 
 
+def read_ipv6_header(raw: bytes) -> dict:
+    """Get information from raw IP header data.
+
+    Args:
+        raw (Bytes): Raw data of IP header.
+
+    Returns:
+        dict: A map contains the infos from the raw header.
+    """
+
+    unpacked = struct.unpack(IPV6_HEADER_FORMAT, raw)
+    version_tc_fl = unpacked[0]
+    version = (version_tc_fl >> 28) & 0xF
+    traffic_class = (version_tc_fl >> 20) & 0xFF
+    flow_label = version_tc_fl & 0xFFFFF
+
+    payload_length = unpacked[1]
+    next_header = unpacked[2]
+    hop_limit = unpacked[3]
+    src_addr = unpacked[4]
+    dst_addr = unpacked[5]
+
+    # Convert addresses to readable format
+    src_addr_str = socket.inet_ntop(socket.AF_INET6, src_addr)
+    dst_addr_str = socket.inet_ntop(socket.AF_INET6, dst_addr)
+
+    return {
+        "version": version,
+        "traffic_class": traffic_class,
+        "flow_label": flow_label,
+        "payload_length": payload_length,
+        "next_header": next_header,
+        "hop_limit": hop_limit,
+        "source_address": src_addr_str,
+        "destination_address": dst_addr_str,
+    }
+
+
 @_func_logger
-def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, size: int) -> None:
+def send_one_ping(
+    sock: socket.socket,
+    sockaddr: tuple[str, int] | tuple[str, int, int, int],
+    icmp_id: int,
+    seq: int,
+    size: int,
+) -> None:
     """Sends one ping to the given destination.
 
     ICMP Header (bits): type (8), code (8), checksum (16), id (16), sequence (16)
@@ -149,7 +225,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
     Args:
         sock (socket.socket): Socket.
-        dest_addr (str): The destination address, can be an IP address or a domain name. Ex. "192.168.1.1"/"example.com"
+        sockaddr (str): The destination address
         icmp_id (int): ICMP packet id. Calculated from Process ID and Thread ID.
         seq (int): ICMP packet sequence, usually increases from 0 in the same process.
         size (int): The ICMP packet payload size in bytes. Note this is only for the payload part.
@@ -157,23 +233,43 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     Raises:
         HostUnkown: If destination address is a domain name and cannot resolved.
     """
-    _debug("Destination address: '{}'".format(dest_addr))
-    try:
-        dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
-    except socket.gaierror as err:
-        raise errors.HostUnknown(dest_addr=dest_addr) from err
-    _debug("Destination IP address:", dest_addr)
+    _debug("Destination IP address:", sockaddr[0])
     pseudo_checksum = 0  # Pseudo checksum is used to calculate the real checksum.
-    icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, pseudo_checksum, icmp_id, seq)
-    padding = (size - struct.calcsize(ICMP_TIME_FORMAT)) * "Q"  # Using double to store current time.
+
+    echo_request = (
+        IcmpType if sock.family == socket.AF_INET else IcmpV6Type
+    ).ECHO_REQUEST
+
+    icmp_header = struct.pack(
+        ICMP_HEADER_FORMAT,
+        echo_request,
+        ICMP_DEFAULT_CODE,
+        pseudo_checksum,
+        icmp_id,
+        seq,
+    )
+    padding = (
+        size - struct.calcsize(ICMP_TIME_FORMAT)
+    ) * "Q"  # Using double to store current time.
     icmp_payload = struct.pack(ICMP_TIME_FORMAT, time.time()) + padding.encode()
-    real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
+    real_checksum = checksum(
+        icmp_header + icmp_payload
+    )  # Calculates the checksum on the dummy header and the icmp_payload.
     # Don't know why I need socket.htons() on real_checksum since ICMP_HEADER_FORMAT already in Network Bytes Order (big-endian)
-    icmp_header = struct.pack(ICMP_HEADER_FORMAT, IcmpType.ECHO_REQUEST, ICMP_DEFAULT_CODE, socket.htons(real_checksum), icmp_id, seq)  # Put real checksum into ICMP header.
+    icmp_header = struct.pack(
+        ICMP_HEADER_FORMAT,
+        echo_request,
+        ICMP_DEFAULT_CODE,
+        socket.htons(real_checksum),
+        icmp_id,
+        seq,
+    )  # Put real checksum into ICMP header.
     _debug("Sent ICMP header:", read_icmp_header(icmp_header))
     _debug("Sent ICMP payload:", icmp_payload)
     packet = icmp_header + icmp_payload
-    sock.sendto(packet, (dest_addr, 0))  # addr = (ip, port). Port is 0 respectively the OS default behavior will be used.
+    sock.sendto(
+        packet, sockaddr
+    )  # addr = (ip, port). Port is 0 respectively the OS default behavior will be used.
 
 
 @_func_logger
@@ -200,64 +296,167 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         DestinationHostUnreachable: If the destination host is unreachable.
         DestinationUnreachable: If the destination is unreachable.
     """
-    has_ip_header = (os.name != 'posix') or (platform.system() == 'Darwin') or (sock.type == socket.SOCK_RAW)  # No IP Header when unprivileged on Linux.
+    icmp_type = IcmpType if sock.family == socket.AF_INET else IcmpV6Type
+    has_ip_header = (
+        (os.name != "posix")
+        or (platform.system() == "Darwin" and sock.family == socket.AF_INET)
+        or (sock.type == socket.SOCK_RAW)
+    )  # No IP Header when unprivileged on Linux and IPv6 on macos.
     if has_ip_header:
-        ip_header_slice = slice(0, struct.calcsize(IP_HEADER_FORMAT))  # [0:20]
-        icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
+        ip_header_slice = slice(
+            0,
+            struct.calcsize(
+                IP_HEADER_FORMAT
+                if sock.family == socket.AF_INET
+                else IPV6_HEADER_FORMAT
+            ),
+        )  # [0:20]
+        icmp_header_slice = slice(
+            ip_header_slice.stop,
+            ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT),
+        )  # [20:28]
     else:
         _debug("Unprivileged on Linux")
         icmp_header_slice = slice(0, struct.calcsize(ICMP_HEADER_FORMAT))  # [0:8]
     timeout_time = time.time() + timeout  # Exactly time when timeout.
-    _debug("Timeout time: {} ({})".format(time.ctime(timeout_time), timeout_time))
+    _debug(f"Timeout time: {time.ctime(timeout_time)} ({timeout_time})")
     while True:
-        timeout_left = timeout_time - time.time()  # How many seconds left until timeout.
-        timeout_left = timeout_left if timeout_left > 0 else 0  # Timeout must be non-negative
-        _debug("Timeout left: {:.2f}s".format(timeout_left))
-        selected = select.select([sock, ], [], [], timeout_left)  # Wait until sock is ready to read or time is out.
+        timeout_left = (
+            timeout_time - time.time()
+        )  # How many seconds left until timeout.
+        timeout_left = (
+            timeout_left if timeout_left > 0 else 0
+        )  # Timeout must be non-negative
+        _debug(f"Timeout left: {timeout_left:.2f}s")
+
+        # Wait until sock is ready to read or time is out.
+        selected = select.select([sock], [], [], timeout_left)
         if selected[0] == []:  # Timeout
             raise errors.Timeout(timeout=timeout)
         time_recv = time.time()
-        _debug("Received time: {} ({}))".format(time.ctime(time_recv), time_recv))
-        recv_data, addr = sock.recvfrom(1500)  # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
+        _debug(f"Received time: {time.ctime(time_recv)} ({time_recv}))")
+
+        # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
+        packet_buffer_size = 1500
+
+        # If equivalent to "not Unix" because socket.recvmsg is not supported on non-unix systems
+        if not has_ip_header:
+            recv_data, addr = sock.recvfrom(packet_buffer_size)
+        else:
+            # Receive packet and ancillary data
+            recv_data, ancdata_list, msg_flags, addr = sock.recvmsg(
+                packet_buffer_size, 1024
+            )
+            for ancdata in ancdata_list:
+                ancdata_level, ancdata_type, ancdata_data = ancdata
+
+                if (
+                    ancdata_level == socket.SOL_SOCKET
+                    and ancdata_type == SOCKET_SO_TIMESTAMPNS
+                ):
+                    time_recv_seconds = int.from_bytes(
+                        ancdata_data[0:7], byteorder="little"
+                    )
+                    time_recv_nanoseconds = int.from_bytes(
+                        ancdata_data[8:], byteorder="little"
+                    )
+                    time_recv = (
+                        time_recv_seconds + time_recv_nanoseconds / 1_000_000_000
+                    )
+                    _debug(
+                        "Kernel received time: {} ({}))".format(
+                            time.ctime(time_recv), time_recv
+                        )
+                    )
+
         if has_ip_header:
             ip_header_raw = recv_data[ip_header_slice]
-            ip_header = read_ip_header(ip_header_raw)
+            ip_header = (
+                read_ip_header(ip_header_raw)
+                if sock.family == socket.AF_INET
+                else read_ipv6_header(ip_header_raw)
+            )
             _debug("Received IP header:", ip_header)
         else:
             ip_header = None
-        icmp_header_raw, icmp_payload_raw = recv_data[icmp_header_slice], recv_data[icmp_header_slice.stop:]
+        icmp_header_raw, icmp_payload_raw = (
+            recv_data[icmp_header_slice],
+            recv_data[icmp_header_slice.stop :],
+        )
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP header:", icmp_header)
         _debug("Received ICMP payload:", icmp_payload_raw)
-        if not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.
-            icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364
-        if icmp_header['type'] == IcmpType.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
-            if icmp_header['code'] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
-                raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
+        # When unprivileged on Linux, ICMP ID is rewrited by kernel.
+        if not has_ip_header and sock.family == socket.AF_INET:
+            # According to https://stackoverflow.com/a/14023878/4528364
+            icmp_id = sock.getsockname()[1]
+        if (
+            icmp_header["type"] == icmp_type.TIME_EXCEEDED
+        ):  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
+            # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
+            if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:
+                raise errors.TimeToLiveExpired(
+                    ip_header=ip_header, icmp_header=icmp_header
+                )  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
-        if icmp_header['type'] == IcmpType.DESTINATION_UNREACHABLE:  # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
-            if icmp_header['code'] == IcmpDestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
-                raise errors.DestinationHostUnreachable(ip_header=ip_header, icmp_header=icmp_header)
-            raise errors.DestinationUnreachable(ip_header=ip_header, icmp_header=icmp_header)
-        if icmp_header['id']:
-            if icmp_header['type'] == IcmpType.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
+
+        # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
+        if icmp_header["type"] == icmp_type.DESTINATION_UNREACHABLE:
+            if icmp_header["code"] in (
+                [IcmpDestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE]
+                if sock.family == socket.AF_INET
+                else [
+                    IcmpV6DestinationUnreachableCode.PORT_UNREACHABLE,
+                    IcmpV6DestinationUnreachableCode.ADDRESS_UNREACHABLE,
+                ]
+            ):
+                raise errors.DestinationHostUnreachable(
+                    ip_header=ip_header, icmp_header=icmp_header
+                )
+            raise errors.DestinationUnreachable(
+                ip_header=ip_header, icmp_header=icmp_header
+            )
+        if icmp_header["id"]:
+            # filters out the ECHO_REQUEST itself.
+            if icmp_header["type"] == icmp_type.ECHO_REQUEST:
                 _debug("ECHO_REQUEST received. Packet filtered out.")
                 continue
-            if icmp_header['id'] != icmp_id:  # ECHO_REPLY should match the ICMP ID field.
+
+            # ECHO_REPLY should match the ICMP ID field.
+            _debug("ICMP ID:", icmp_header["id"], "Expected:", icmp_id)
+            if icmp_header["id"] != icmp_id:
                 _debug("ICMP ID dismatch. Packet filtered out.")
                 continue
-            if icmp_header['seq'] != seq:  # ECHO_REPLY should match the ICMP SEQ field.
+
+            # ECHO_REPLY should match the ICMP SEQ field.
+            if icmp_header["seq"] != seq:
                 _debug("IMCP SEQ dismatch. Packet filtered out.")
                 continue
-            if icmp_header['type'] == IcmpType.ECHO_REPLY:
-                time_sent = struct.unpack(ICMP_TIME_FORMAT, icmp_payload_raw[0:struct.calcsize(ICMP_TIME_FORMAT)])[0]
-                _debug("Received sent time: {} ({})".format(time.ctime(time_sent), time_sent))
+            if icmp_header["type"] == icmp_type.ECHO_REPLY:
+                time_sent = struct.unpack(
+                    ICMP_TIME_FORMAT,
+                    icmp_payload_raw[0 : struct.calcsize(ICMP_TIME_FORMAT)],
+                )[0]
+                _debug(
+                    "Received sent time: {} ({})".format(
+                        time.ctime(time_sent), time_sent
+                    )
+                )
                 return time_recv - time_sent
         _debug("Uncatched ICMP packet:", icmp_header)
 
 
 @_func_logger
-def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", ttl= None, seq: int = 0, size: int = 56, interface: str = ""):
+def ping(
+    dest_addr: str,
+    timeout: int = 4,
+    unit: str = "s",
+    src_addr: str = "",
+    ttl=None,
+    seq: int = 0,
+    size: int = 56,
+    interface: str = "",
+):
     """
     Send one ping to destination address with the given timeout.
 
@@ -278,37 +477,77 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
     """
     try:
-        sock = socket.socket(socket.AF_INET, socket.SOCK_RAW, socket.IPPROTO_ICMP)
+        icmp_protocol = socket.IPPROTO_ICMPV6
+        family, soc_type, proto, canonname, sockaddr = socket.getaddrinfo(
+            dest_addr, None, proto=socket.IPPROTO_ICMPV6
+        )[0]
+
+    except socket.gaierror:
+        icmp_protocol = socket.IPPROTO_ICMP
+        family, soc_type, proto, canonname, sockaddr = socket.getaddrinfo(
+            dest_addr, None, proto=icmp_protocol
+        )[0]
+
+    try:
+        sock = socket.socket(family, soc_type, proto)
     except PermissionError as err:
         if err.errno == errno.EPERM:  # [Errno 1] Operation not permitted
-            _debug("`{}` when create socket.SOCK_RAW, using socket.SOCK_DGRAM instead.".format(err))
-            sock = socket.socket(socket.AF_INET, socket.SOCK_DGRAM, socket.IPPROTO_ICMP)
+            _debug(
+                f"`{err}` when create socket.SOCK_RAW, using socket.SOCK_DGRAM instead."
+            )
+            sock = socket.socket(family, socket.SOCK_DGRAM, proto)
         else:
             raise err
+
     with sock:
+        try:
+            # Try to add kernel timestamping
+            sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_TIMESTAMPNS, 1)
+        except OSError:
+            _debug("Kernel packet timestamping unavailable")
+            pass
         if ttl:
             try:  # IPPROTO_IP is for Windows and BSD Linux.
-                if sock.getsockopt(socket.IPPROTO_IP, socket.IP_TTL):
-                    sock.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, ttl)
+                if sock.getsockopt(icmp_protocol, socket.IP_TTL):
+                    sock.setsockopt(icmp_protocol, socket.IP_TTL, ttl)
             except OSError as err:
-                _debug("Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err))
+                _debug(
+                    "Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err)
+                )
             try:
                 if sock.getsockopt(socket.SOL_IP, socket.IP_TTL):
                     sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
             except OSError as err:
                 _debug("Set Socket Option `IP_TTL` in `SOL_IP` Failed: {}".format(err))
         if interface:
-            sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # packets will be sent from specified interface.
+            # packets will be sent from specified interface.
+            sock.setsockopt(
+                socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode()
+            )
             _debug("Socket Interface Binded:", interface)
         if src_addr:
             sock.bind((src_addr, 0))  # only packets send to src_addr are received.
             _debug("Socket Source Address Binded:", src_addr)
-        thread_id = threading.get_native_id() if hasattr(threading, 'get_native_id') else threading.currentThread().ident  # threading.get_native_id() is supported >= python3.8.
-        process_id = os.getpid()  # If ping() run under different process, thread_id may be identical.
-        icmp_id = zlib.crc32("{}{}".format(process_id, thread_id).encode()) & 0xffff  # to avoid icmp_id collision.
+
+        # threading.get_native_id() is supported >= python3.8.
+        thread_id = (
+            threading.get_native_id()
+            if hasattr(threading, "get_native_id")
+            else threading.current_thread().ident
+        )
+
+        # If ping() run under different process, thread_id may be identical.
+        process_id = os.getpid()
+
+        # to avoid icmp_id collision.
+        icmp_id = zlib.crc32(f"{process_id}{thread_id}".encode()) & 0xFFFF
         try:
-            send_one_ping(sock=sock, dest_addr=dest_addr, icmp_id=icmp_id, seq=seq, size=size)
-            delay = receive_one_ping(sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout)  # in seconds
+            send_one_ping(
+                sock=sock, sockaddr=sockaddr, icmp_id=icmp_id, seq=seq, size=size
+            )
+            delay = receive_one_ping(
+                sock=sock, icmp_id=icmp_id, seq=seq, timeout=timeout
+            )  # in seconds
         except errors.Timeout as err:
             _debug(err)
             _raise(err)
@@ -345,8 +584,8 @@ def verbose_ping(dest_addr: str, count: int = 4, interval: float = 0, *args, **k
     while i < count or count == 0:
         if interval > 0 and i > 0:
             time.sleep(interval)
-        output_text = "ping '{}'".format(dest_addr)
-        output_text += " from '{}'".format(src) if src else ""
+        output_text = f"ping '{dest_addr}'"
+        output_text += f" from '{src}'" if src else ""
         output_text += " ... "
         delay = ping(dest_addr, seq=i, *args, **kwargs)
         print(output_text, end="")

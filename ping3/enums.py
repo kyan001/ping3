@@ -17,6 +17,30 @@ class IcmpType(enum.IntEnum):
     TIMESTAMP_REPLY = 14
 
 
+class IcmpV6Type(enum.IntEnum):
+    """Enum for Type in ICMP Header."""
+
+    ECHO_REPLY = 129
+    DESTINATION_UNREACHABLE = 1
+    REDIRECT_MESSAGE = 137
+    ECHO_REQUEST = 128
+    ROUTER_ADVERTISEMENT = 134
+    ROUTER_SOLICITATION = 133
+    TIME_EXCEEDED = 3
+
+
+class IcmpV6DestinationUnreachableCode(enum.IntEnum):
+    """Enum for Code in ICMP Header when type is DESTINATION_UNREACHABLE (1)"""
+
+    NO_ROUTE_TO_DESTINATION = 0
+    COMMUNICATION_PROHIBITED = 1
+    BEYOND_SCOPE = 2
+    ADDRESS_UNREACHABLE = 3
+    PORT_UNREACHABLE = 4
+    SOURCE_ADDRESS_FAILED = 5
+    REJECT_ROUTE_TO_DESTINATION = 6
+    ERROR_IN_SOURCE_ROUTING_HEADER = 7
+
 class IcmpDestinationUnreachableCode(enum.IntEnum):
     """Enum for Code in ICMP Header when type is DESTINATION_UNREACHABLE (3)"""
     DESTINATION_NETWORK_UNREACHABLE = 0
@@ -38,6 +62,7 @@ class IcmpDestinationUnreachableCode(enum.IntEnum):
 
 
 class IcmpTimeExceededCode(enum.IntEnum):
-    """Enum for Code in ICMP Header when type is TIME_EXCEEDED (11)"""
+    """Enum for Code in ICMP and ICMPv6 Header when type is TIME_EXCEEDED (11)"""
     TTL_EXPIRED = 0
     FRAGMENT_REASSEMBLY_TIME_EXCEEDED = 1
+
