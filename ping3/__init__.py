@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.1.2"
+__version__ = "5.1.3"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -230,7 +230,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     if is_ipv4(sock):
         real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
     else:  # ICMPv6 requires a pseudo header for checksum calculation.
-        with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as dummy_sock:  # Create a dummy socket to get the source address.
+        with socket.socket(socket.AF_INET6, sock.type, sock.proto) as dummy_sock:  # Create a dummy socket to get the source address.
             dummy_sock.connect(sock_addr)  # Set default dest_addr so the OS can select the correct source address. No real data is sent.
             src_addr = dummy_sock.getsockname()[0]  # Get the source address.
         _debug("Source Address: {}".format(src_addr))
