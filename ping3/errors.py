@@ -30,6 +30,22 @@ class DestinationHostUnreachable(DestinationUnreachable):
         super().__init__(self.message)
 
 
+class AddressUnreachable(DestinationUnreachable):
+    def __init__(self, message="Destination unreachable: Address unreachable.", ip_header=None, icmp_header=None):
+        self.ip_header = ip_header
+        self.icmp_header = icmp_header
+        self.message = message if self.ip_header is None else message + " (Host='{}')".format(self.ip_header.get("src_addr"))
+        super().__init__(self.message)
+
+
+class PortUnreachable(DestinationUnreachable):
+    def __init__(self, message="Destination unreachable: Port unreachable.", ip_header=None, icmp_header=None):
+        self.ip_header = ip_header
+        self.icmp_header = icmp_header
+        self.message = message if self.ip_header is None else message + " (Host='{}')".format(self.ip_header.get("src_addr"))
+        super().__init__(self.message)
+
+
 class HostUnknown(PingError):
     def __init__(self, message="Cannot resolve: Unknown host.", dest_addr=None):
         self.dest_addr = dest_addr
