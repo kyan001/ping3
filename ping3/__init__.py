@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.0.0"
+__version__ = "5.1.0"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -415,44 +415,33 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
             sock = socket.socket(socket_family, socket.SOCK_DGRAM, socket_protocol)  # TBC: On Linux, using SOCK_DGRAM with IPPROTO_ICMPV6 will not work as expected. It will not send ICMP packets, but will send UDP packets instead.
         else:
             raise err
-
-
-
-    # try:
-    #     icmp_protocol = socket.IPPROTO_ICMPV6
-    #     family, soc_type, proto, canonname, sockaddr = socket.getaddrinfo(
-    #         dest_addr, None, proto=socket.IPPROTO_ICMPV6
-    #     )[0]
-
-    # except socket.gaierror:
-    #     icmp_protocol = socket.IPPROTO_ICMP
-    #     family, soc_type, proto, canonname, sockaddr = socket.getaddrinfo(
-    #         dest_addr, None, proto=icmp_protocol
-    #     )[0]
-
-    # try:
-    #     sock = socket.socket(family, soc_type, proto)
-
-
-
     with sock:
         if ttl:
-            try:  # IPPROTO_IP is for Windows and BSD Linux.
-                if sock.getsockopt(socket_protocol, socket.IP_TTL):
-                    sock.setsockopt(socket_protocol, socket.IP_TTL, ttl)
-            except OSError as err:
-                _debug("Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err))
-            try:
-                if sock.getsockopt(socket.SOL_IP, socket.IP_TTL):
-                    sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
-            except OSError as err:
-                _debug("Set Socket Option `IP_TTL` in `SOL_IP` Failed: {}".format(err))
+            if is_v4(sock):  # socket.IP_TTL and socket.SOL_IP are for IPv4.
+                try:  # IPPROTO_IP is for Windows and BSD Linux.
+                    if sock.getsockopt(socket_protocol, socket.IP_TTL):
+                        sock.setsockopt(socket_protocol, socket.IP_TTL, ttl)
+                except OSError as err:
+                    _debug("Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err))
+                try:
+                    if sock.getsockopt(socket.SOL_IP, socket.IP_TTL):
+                        sock.setsockopt(socket.SOL_IP, socket.IP_TTL, ttl)
+                except OSError as err:
+                    _debug("Set Socket Option `IP_TTL` in `SOL_IP` Failed: {}".format(err))
+            else:  # IPv6
+                try:  # socket.IPV6_UNICAST_HOPS is for IPv6.
+                    if sock.getsockopt(socket_protocol, socket.IPV6_UNICAST_HOPS):
+                        sock.setsockopt(socket_protocol, socket.IPV6_UNICAST_HOPS, ttl)
+                except OSError as err:
+                    _debug("Set Socket Option `IPV6_UNICAST_HOPS` in `IPPROTO_IPV6` Failed: {}".format(err))
         if interface:
             sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # Packets will be sent from specified interface.
             _debug("Socket Interface Binded:", interface)
         if src_addr:
-            sock.bind((src_addr, 0))  # only packets send to src_addr are received.
-            _debug("Socket Source Address Binded:", src_addr)
+            if is_v4(sock):
+                sock.bind((src_addr, 0))  # only packets send to src_addr are received.
+                _debug("Socket Source Address Binded:", src_addr)
+            # TODO: Support src_addr for IPv6. Currently, the source address is determined by the OS when sending packets.
         thread_id = (threading.get_native_id() if hasattr(threading, "get_native_id") else threading.current_thread().ident)  # threading.get_native_id() is supported >= python3.8.
         process_id = os.getpid()  # If ping() run under different process, thread_id may be identical.
         icmp_id = zlib.crc32("{}{}".format(process_id, thread_id).encode()) & 0xffff  # to avoid icmp_id collision.
