@@ -75,6 +75,34 @@ class test_ping3(unittest.TestCase):
         with self.assertRaises(OSError):
             ping3.ping(DEST_DOMAIN, size=99999)  # most router has 1480 MTU, which is IP_Header(20) + ICMP_Header(8) + ICMP_Payload(1452)
 
+    def test_ping_ipv4_domain(self):
+        delay = ping3.ping(DEST_DOMAIN, version=4)
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv6_domain(self):
+        delay = ping3.ping(DEST_DOMAIN, version=6)
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv4_ip(self):
+        delay = ping3.ping("127.0.0.1", version=4)
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv6_ip(self):
+        delay = ping3.ping("::1", version=6)
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv4_autodetect(self):
+        delay = ping3.ping("127.0.0.1")
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv6_autodetect(self):
+        delay = ping3.ping("::1")
+        self.assertIsInstance(delay, float)
+
+    def test_ping_ipv4_default(self):
+        delay = ping3.ping("example.com", version=None)
+        self.assertIsInstance(delay, float)
+
     def test_verbose_ping_size(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping(DEST_DOMAIN, size=100)

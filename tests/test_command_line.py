@@ -95,6 +95,16 @@ class test_ping3(unittest.TestCase):
             command_line.main(["-S", my_ip, dest_addr])
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
+    def test_ipv4(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            command_line.main(["-4", DEST_DOMAIN])
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    def test_ipv6(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            command_line.main(["-6", DEST_DOMAIN])
+            self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
     def test_debug(self):
         with patch("sys.stdout", new=io.StringIO()), patch("sys.stderr", new=io.StringIO()) as fake_err:
             command_line.main(["--debug", "-c", "1", DEST_DOMAIN])
