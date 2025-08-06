@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.1.1"
+__version__ = "5.1.2"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -28,8 +28,6 @@ ICMP_HEADER_FORMAT = "!BBHHH"  # According to netinet/ip_icmp.h. B: Type (8). B:
 ICMP_TIME_FORMAT = "!d"  # d=double
 ICMPV6_PSEUDO_HEADER_FORMAT = "!16s16sIBBBB"  # 16s: Source Address (128), 16s: Destination Address (128), I: ICMPv6 Length (32), B: Zeros (24), B: Next Header (8)
 SOCKET_SO_BINDTODEVICE = 25  # socket.SO_BINDTODEVICE
-# # SO_TIMESTAMPNS_NEW because SO_TIMESTAMPNS_OLD (63) "returns incorrect timestamps after the year 2038 on 32 bit machines."
-# SOCKET_SO_TIMESTAMPNS = 64
 
 
 def _debug(*args) -> None:
@@ -95,7 +93,7 @@ def _func_logger(func):
     return wrapper
 
 
-def is_v4(sock: socket.socket) -> bool:
+def is_ipv4(sock: socket.socket) -> bool:
     """Check if the socket is IPv4.
 
     Args:
@@ -153,11 +151,11 @@ def read_ipv4_header(raw: bytes) -> dict:
     def stringify_ip(ip: int) -> str:
         return ".".join(str(ip >> offset & 0xFF) for offset in (24, 16, 8, 0))  # str(ipaddress.ip_address(ip))
 
-    ip_header_keys = ("version", "tos", "len", "id", "flags", "ttl", "protocol", "checksum", "src_addr", "dest_addr")
-    ip_header = dict(zip(ip_header_keys, struct.unpack(IPV4_HEADER_FORMAT, raw)))
-    ip_header["src_addr"] = stringify_ip(ip_header["src_addr"])
-    ip_header["dest_addr"] = stringify_ip(ip_header["dest_addr"])
-    return ip_header
+    ipv4_header_keys = ("version", "tos", "len", "id", "flags", "ttl", "protocol", "checksum", "src_addr", "dest_addr")
+    ipv4_header = dict(zip(ipv4_header_keys, struct.unpack(IPV4_HEADER_FORMAT, raw)))
+    ipv4_header["src_addr"] = stringify_ip(ipv4_header["src_addr"])
+    ipv4_header["dest_addr"] = stringify_ip(ipv4_header["dest_addr"])
+    return ipv4_header
 
 
 def read_ipv6_header(raw: bytes) -> dict:
@@ -169,19 +167,19 @@ def read_ipv6_header(raw: bytes) -> dict:
     Returns:
         dict: A map contains the infos from the raw header.
     """
-    ip_header_keys = ("initial", "len", "next_header", "hop_limit", "src_addr", "dest_addr")
-    ip_header_unpacked = dict(zip(ip_header_keys, struct.unpack(IPV6_HEADER_FORMAT, raw[:40])))
-    ip_header = {
-        "len": ip_header_unpacked["len"],
-        "next_header": ip_header_unpacked["next_header"],
-        "hop_limit": ip_header_unpacked["hop_limit"],
+    ipv6_header_keys = ("initial", "len", "next_header", "hop_limit", "src_addr", "dest_addr")
+    ipv6_header_unpacked = dict(zip(ipv6_header_keys, struct.unpack(IPV6_HEADER_FORMAT, raw[:40])))
+    ipv6_header = {
+        "len": ipv6_header_unpacked["len"],
+        "next_header": ipv6_header_unpacked["next_header"],
+        "hop_limit": ipv6_header_unpacked["hop_limit"],
     }
-    ip_header["version"] = (ip_header_unpacked["initial"] >> 28) & 0x0F  # First 32 bits is combined version (4), traffic class (8) and flow label (20).
-    ip_header["traffic_class"] = (ip_header_unpacked["initial"] >> 20) & 0xFF
-    ip_header["flow_label"] = ip_header_unpacked["initial"] & 0xFFFFF
-    ip_header["src_addr"] = socket.inet_ntop(socket.AF_INET6, ip_header_unpacked["src_addr"])  # Convert source address to readable format.
-    ip_header["dest_addr"] = socket.inet_ntop(socket.AF_INET6, ip_header_unpacked["dest_addr"])  # Convert destination address to readable format.
-    return ip_header
+    ipv6_header["version"] = (ipv6_header_unpacked["initial"] >> 28) & 0x0F  # First 32 bits is combined version (4), traffic class (8) and flow label (20).
+    ipv6_header["traffic_class"] = (ipv6_header_unpacked["initial"] >> 20) & 0xFF
+    ipv6_header["flow_label"] = ipv6_header_unpacked["initial"] & 0xFFFFF
+    ipv6_header["src_addr"] = socket.inet_ntop(socket.AF_INET6, ipv6_header_unpacked["src_addr"])  # Convert source address to readable format.
+    ipv6_header["dest_addr"] = socket.inet_ntop(socket.AF_INET6, ipv6_header_unpacked["dest_addr"])  # Convert destination address to readable format.
+    return ipv6_header
 
 
 @_func_logger
@@ -208,11 +206,11 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     """
     _debug("Destination address:", dest_addr)
     try:  # Resolve domain name to IP address if needed.
-        if is_v4(sock):
+        if is_ipv4(sock):
             dest_addr = socket.gethostbyname(dest_addr)  # Domain name will translated into IP address, and IP address leaves unchanged.
-            sock_addr = (dest_addr, 0)  # For IPv4, sock_addr is (dest_addr, port)
+            sock_addr = (dest_addr, 0)  # For IPv4, sock_addr is (dest_addr, port). Port is 0 respectively the OS default behavior will be used.
         else:
-            sock_addr = socket.getaddrinfo(dest_addr, None, socket.AF_INET6, socket.SOCK_RAW, socket.IPPROTO_ICMPV6)[0][4]
+            sock_addr = socket.getaddrinfo(dest_addr, None, socket.AF_INET6, socket.SOCK_RAW, socket.IPPROTO_ICMPV6)[0][4]  # For IPv6, sock_addr is (dest_addr, port, flowinfo, scopeid)
     except socket.gaierror as err:
         raise errors.HostUnknown(dest_addr=dest_addr) from err
     _debug("Resolved destination address:", sock_addr[0])
@@ -221,7 +219,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
 
     icmp_header = struct.pack(
         ICMP_HEADER_FORMAT,
-        IcmpV4Type.ECHO_REQUEST if is_v4(sock) else IcmpV6Type.ECHO_REQUEST,
+        IcmpV4Type.ECHO_REQUEST if is_ipv4(sock) else IcmpV6Type.ECHO_REQUEST,
         ICMP_DEFAULT_CODE,
         pseudo_checksum,
         icmp_id,
@@ -229,9 +227,9 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     )
     padding = (size - struct.calcsize(ICMP_TIME_FORMAT)) * "Q"  # Using double to store current time.
     icmp_payload = struct.pack(ICMP_TIME_FORMAT, time.time()) + padding.encode()
-    if is_v4(sock):
+    if is_ipv4(sock):
         real_checksum = checksum(icmp_header + icmp_payload)  # Calculates the checksum on the dummy header and the icmp_payload.
-    else:
+    else:  # ICMPv6 requires a pseudo header for checksum calculation.
         with socket.socket(socket.AF_INET6, socket.SOCK_DGRAM) as dummy_sock:  # Create a dummy socket to get the source address.
             dummy_sock.connect(sock_addr)  # Set default dest_addr so the OS can select the correct source address. No real data is sent.
             src_addr = dummy_sock.getsockname()[0]  # Get the source address.
@@ -247,7 +245,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
         real_checksum = checksum(pseudo_header + icmp_header + icmp_payload)  # Calculates the checksum on the pseudo header + icmp_header + icmp_payload.
     icmp_header = struct.pack(
         ICMP_HEADER_FORMAT,
-        IcmpV4Type.ECHO_REQUEST if is_v4(sock) else IcmpV6Type.ECHO_REQUEST,
+        IcmpV4Type.ECHO_REQUEST if is_ipv4(sock) else IcmpV6Type.ECHO_REQUEST,
         ICMP_DEFAULT_CODE,
         socket.htons(real_checksum),  # Don't know why I need socket.htons() on real_checksum since ICMP_HEADER_FORMAT already in Network Bytes Order (big-endian)
         icmp_id,
@@ -256,7 +254,7 @@ def send_one_ping(sock: socket.socket, dest_addr: str, icmp_id: int, seq: int, s
     _debug("Sent ICMP header:", read_icmp_header(icmp_header))
     _debug("Sent ICMP payload:", icmp_payload)
     packet = icmp_header + icmp_payload
-    sock.sendto(packet, sock_addr)  # addr = (ip, port). Port is 0 respectively the OS default behavior will be used.
+    sock.sendto(packet, sock_addr)  # sock_addr = (ip, port) or (ip, port, flowinfo, scopeid).
 
 
 @_func_logger
@@ -298,9 +296,9 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         """
         first_field = recv_data[0] >> 4  # The first 4 bits of the first byte is the version field of IP Header.
         _debug("Detecting if received data has IP header. First 4 bits: {}".format(first_field))
-        return first_field == (4 if is_v4(sock) else 6)
+        return first_field == (4 if is_ipv4(sock) else 6)
 
-    icmp_type = IcmpV4Type if is_v4(sock) else IcmpV6Type
+    icmp_type = IcmpV4Type if is_ipv4(sock) else IcmpV6Type
     timeout_time = time.time() + timeout  # Exactly time when timeout.
     _debug("Timeout time: {} ({})".format(time.ctime(timeout_time), timeout_time))
     while True:
@@ -315,16 +313,16 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         _debug("Received time: {} ({}))".format(time.ctime(time_recv), time_recv))
         recv_data, addr = sock.recvfrom(1500)  # Single packet size limit is 65535 bytes, but usually the network packet limit is 1500 bytes.
 
-        if is_v4(sock):
+        if is_ipv4(sock):
             has_ip_header = (os.name != "posix") or (platform.system() == "Darwin") or (sock.type == socket.SOCK_RAW)  # No IP Header when unprivileged on Linux.
         else:
             has_ip_header = detect_ip_header(sock, recv_data)
         if has_ip_header:
             _debug("Has IP header: True")
-            ip_header_slice = slice(0, struct.calcsize(IPV4_HEADER_FORMAT if is_v4(sock) else IPV6_HEADER_FORMAT))  # [0:20]
+            ip_header_slice = slice(0, struct.calcsize(IPV4_HEADER_FORMAT if is_ipv4(sock) else IPV6_HEADER_FORMAT))  # [0:20]
             icmp_header_slice = slice(ip_header_slice.stop, ip_header_slice.stop + struct.calcsize(ICMP_HEADER_FORMAT))  # [20:28]
             ip_header_raw = recv_data[ip_header_slice]
-            ip_header = read_ipv4_header(ip_header_raw) if is_v4(sock) else read_ipv6_header(ip_header_raw)
+            ip_header = read_ipv4_header(ip_header_raw) if is_ipv4(sock) else read_ipv6_header(ip_header_raw)
             _debug("Received IP header:", ip_header)
         else:
             _debug("Has IP header: False")
@@ -339,7 +337,7 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
                 raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
         if icmp_header["type"] == icmp_type.DESTINATION_UNREACHABLE:  # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
-            if is_v4(sock):
+            if is_ipv4(sock):
                 if icmp_header["code"] == IcmpV4DestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
                     raise errors.DestinationHostUnreachable(ip_header=ip_header, icmp_header=icmp_header)
             else:
@@ -421,7 +419,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
             raise err
     with sock:
         if ttl:
-            if is_v4(sock):  # socket.IP_TTL and socket.SOL_IP are for IPv4.
+            if is_ipv4(sock):  # socket.IP_TTL and socket.SOL_IP are for IPv4.
                 try:  # IPPROTO_IP is for Windows and BSD Linux.
                     if sock.getsockopt(socket_protocol, socket.IP_TTL):
                         sock.setsockopt(socket_protocol, socket.IP_TTL, ttl)
@@ -438,11 +436,11 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
                         sock.setsockopt(socket_protocol, socket.IPV6_UNICAST_HOPS, ttl)
                 except OSError as err:
                     _debug("Set Socket Option `IPV6_UNICAST_HOPS` in `IPPROTO_IPV6` Failed: {}".format(err))
-        if interface:
-            sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # Packets will be sent from specified interface.
+        if interface:  # Packets will be sent from specified interface.
+            sock.setsockopt(socket.SOL_SOCKET, SOCKET_SO_BINDTODEVICE, interface.encode())  # Linux only. Requires root.
             _debug("Socket Interface Binded:", interface)
         if src_addr:
-            if is_v4(sock):
+            if is_ipv4(sock):
                 sock.bind((src_addr, 0))  # only packets send to src_addr are received.
                 _debug("Socket Source Address Binded:", src_addr)
             # TODO: Support src_addr for IPv6. Currently, the source address is determined by the OS when sending packets.
