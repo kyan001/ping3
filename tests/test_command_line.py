@@ -10,7 +10,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 from ping3 import command_line  # noqa: linter (pycodestyle) should not lint this line.
 from ping3 import errors  # noqa: linter (pycodestyle) should not lint this line.
 
-DEST_DOMAIN = "example.com"
+DEST_DOMAIN = "captive.apple.com"
 
 
 class test_ping3(unittest.TestCase):

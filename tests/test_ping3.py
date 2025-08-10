@@ -9,7 +9,7 @@ import socket
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ping3  # noqa: linter (pycodestyle) should not lint this line.
 
-DEST_DOMAIN = 'example.com'
+DEST_DOMAIN = 'captive.apple.com'
 
 
 class test_ping3(unittest.TestCase):
@@ -184,9 +184,26 @@ class test_ping3(unittest.TestCase):
                 ping3.ping(DEST_DOMAIN, ttl=1)
 
     @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    def test_ping_ipv6_ttl(self):
+        delay = ping3.ping(DEST_DOMAIN, ttl=1, version=6)
+        self.assertIn(delay, (None, False))  # When TTL expired, some routers report nothing.
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    def test_ping_ipv6_ttl_exception(self):
+        with patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
+                ping3.ping(DEST_DOMAIN, ttl=1, version=6)
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping(DEST_DOMAIN, ttl=1)
+            self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    def test_verbose_ping_ipv6_ttl(self):
+        with patch("sys.stdout", new=io.StringIO()) as fake_out:
+            ping3.verbose_ping(DEST_DOMAIN, ttl=1, version=6)
             self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
@@ -194,6 +211,12 @@ class test_ping3(unittest.TestCase):
         with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.verbose_ping(DEST_DOMAIN, ttl=1)
+
+    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    def test_verbose_ping_ipv6_ttl_exception(self):
+        with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
+            with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
+                ping3.verbose_ping(DEST_DOMAIN, ttl=1, version=6)
 
     def test_verbose_ping_count(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
