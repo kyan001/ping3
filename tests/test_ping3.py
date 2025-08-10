@@ -100,7 +100,7 @@ class test_ping3(unittest.TestCase):
         self.assertIsInstance(delay, float)
 
     def test_ping_ipv4_default(self):
-        delay = ping3.ping("example.com", version=None)
+        delay = ping3.ping(DEST_DOMAIN, version=None)
         self.assertIsInstance(delay, float)
 
     def test_verbose_ping_size(self):

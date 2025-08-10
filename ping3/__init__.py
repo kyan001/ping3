@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.1.3"
+__version__ = "5.1.4"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -432,8 +432,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
                     _debug("Set Socket Option `IP_TTL` in `SOL_IP` Failed: {}".format(err))
             else:  # IPv6
                 try:  # socket.IPV6_UNICAST_HOPS is for IPv6.
-                    if sock.getsockopt(socket_protocol, socket.IPV6_UNICAST_HOPS):
-                        sock.setsockopt(socket_protocol, socket.IPV6_UNICAST_HOPS, ttl)
+                    if sock.getsockopt(socket.IPPROTO_IPV6, socket.IPV6_UNICAST_HOPS):  # Unicast Hop Limit should be used at the IPPROTO_IPV6 Layer, not the IPPROTO_ICMPV6 Layer. See: https://datatracker.ietf.org/doc/html/rfc3493#section-5.1
+                        sock.setsockopt(socket.IPPROTO_IPV6, socket.IPV6_UNICAST_HOPS, ttl)
                 except OSError as err:
                     _debug("Set Socket Option `IPV6_UNICAST_HOPS` in `IPPROTO_IPV6` Failed: {}".format(err))
         if interface:  # Packets will be sent from specified interface.
