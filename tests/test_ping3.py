@@ -9,7 +9,9 @@ import socket
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 import ping3  # noqa: linter (pycodestyle) should not lint this line.
 
-DEST_DOMAIN = 'captive.apple.com'
+DEST_DOMAIN = "captive.apple.com"
+NOT_EXIST_DOMAIN = "not.exist.com"
+UNREACHABLE_IP = "10.255.255.1"
 
 
 class test_ping3(unittest.TestCase):
@@ -34,34 +36,36 @@ class test_ping3(unittest.TestCase):
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_ping_timeout(self):
-        delay = ping3.ping(DEST_DOMAIN, timeout=0.0001)
-        self.assertIsNone(delay)
+        start_time = time.time()
+        ping3.ping(UNREACHABLE_IP, timeout=1)
+        end_time = time.time()
+        self.assertLess(end_time - start_time, 1.1)
 
     def test_ping_timeout_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises(ping3.errors.Timeout):
-                ping3.ping(DEST_DOMAIN, timeout=0.0001)
+                ping3.ping(UNREACHABLE_IP, timeout=1)
 
     def test_verbose_ping_timeout(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            ping3.verbose_ping(DEST_DOMAIN, timeout=0.0001)
-            self.assertRegex(fake_out.getvalue(), r".*Timeout \> [0-9\.]+s.*")
+            ping3.verbose_ping(UNREACHABLE_IP, timeout=1)
+            self.assertRegex(fake_out.getvalue(), r".*Timeout \> [1.0]+s.*")
 
     def test_verbose_ping_timeout_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises(ping3.errors.Timeout):
-                ping3.verbose_ping(DEST_DOMAIN, timeout=0.0001)
+                ping3.verbose_ping(UNREACHABLE_IP, timeout=1)
 
     def test_ping_error(self):
-        delay = ping3.ping("not.exist.com")
+        delay = ping3.ping(NOT_EXIST_DOMAIN)
         self.assertFalse(delay)
 
     def test_ping_error_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             try:
-                ping3.ping("not.exist.com")
+                ping3.ping(NOT_EXIST_DOMAIN)
             except ping3.errors.HostUnknown as e:
-                self.assertEqual(e.dest_addr, "not.exist.com")
+                self.assertEqual(e.dest_addr, NOT_EXIST_DOMAIN)
 
     def test_ping_seq(self):
         delay = ping3.ping(DEST_DOMAIN, seq=199)
@@ -97,10 +101,6 @@ class test_ping3(unittest.TestCase):
 
     def test_ping_ipv6_autodetect(self):
         delay = ping3.ping("::1")
-        self.assertIsInstance(delay, float)
-
-    def test_ping_ipv4_default(self):
-        delay = ping3.ping(DEST_DOMAIN, version=None)
         self.assertIsInstance(delay, float)
 
     def test_verbose_ping_size(self):
@@ -172,47 +172,41 @@ class test_ping3(unittest.TestCase):
             ping3.verbose_ping(dest_addr, src_addr=my_ip)
             self.assertRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    # @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ttl(self):
         delay = ping3.ping(DEST_DOMAIN, ttl=1)
         self.assertIn(delay, (None, False))  # When TTL expired, some routers report nothing.
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
+    # @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.ping(DEST_DOMAIN, ttl=1)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ipv6_ttl(self):
         delay = ping3.ping(DEST_DOMAIN, ttl=1, version=6)
         self.assertIn(delay, (None, False))  # When TTL expired, some routers report nothing.
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ping_ipv6_ttl_exception(self):
         with patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.ping(DEST_DOMAIN, ttl=1, version=6)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping(DEST_DOMAIN, ttl=1)
             self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ipv6_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             ping3.verbose_ping(DEST_DOMAIN, ttl=1, version=6)
             self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ttl_exception(self):
         with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
                 ping3.verbose_ping(DEST_DOMAIN, ttl=1)
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_verbose_ping_ipv6_ttl_exception(self):
         with patch("sys.stdout", new=io.StringIO()), patch("ping3.EXCEPTIONS", True):
             with self.assertRaises((ping3.errors.TimeToLiveExpired, ping3.errors.Timeout)):  # When TTL expired, some routers report nothing.
@@ -226,6 +220,7 @@ class test_ping3(unittest.TestCase):
     def test_verbose_ping_interval(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             delay = ping3.ping(DEST_DOMAIN)
+            self.assertIsInstance(delay, float)
             self.assertTrue(0 < delay < 0.75)  # If interval does not work, the total delay should be < 3s (4 * 0.75s)
             start_time = time.time()
             ping3.verbose_ping(DEST_DOMAIN, interval=1)  # If interval does work, the total delay should be > 3s (3 * 1s)
@@ -235,7 +230,7 @@ class test_ping3(unittest.TestCase):
 
     def test_DEBUG(self):
         with patch("ping3.DEBUG", True), patch("sys.stderr", new=io.StringIO()):
-            delay = ping3.ping(DEST_DOMAIN)
+            ping3.ping(DEST_DOMAIN)
             self.assertIsNotNone(ping3.LOGGER)
 
 

@@ -16,7 +16,7 @@ import ipaddress
 from . import errors
 from .enums import ICMP_DEFAULT_CODE, IcmpV4Type, IcmpV4DestinationUnreachableCode, IcmpTimeExceededCode, IcmpV6Type, IcmpV6DestinationUnreachableCode
 
-__version__ = "5.1.4"
+__version__ = "5.1.5"
 DEBUG = False  # DEBUG: Show debug info for developers. (default False)
 EXCEPTIONS = False  # EXCEPTIONS: Raise exception when delay is not available.
 LOGGER = None  # LOGGER: Record logs into console or file. Logger object should have .debug() method.
@@ -421,8 +421,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
         if ttl:
             if is_ipv4(sock):  # socket.IP_TTL and socket.SOL_IP are for IPv4.
                 try:  # IPPROTO_IP is for Windows and BSD Linux.
-                    if sock.getsockopt(socket_protocol, socket.IP_TTL):
-                        sock.setsockopt(socket_protocol, socket.IP_TTL, ttl)
+                    if sock.getsockopt(socket.IPPROTO_IP, socket.IP_TTL):  # TTL is a IPPROTO_IP option, not IPPROTO_ICMP. See: https://datatracker.ietf.org/doc/html/rfc1122#page-34
+                        sock.setsockopt(socket.IPPROTO_IP, socket.IP_TTL, ttl)
                 except OSError as err:
                     _debug("Set Socket Option `IP_TTL` in `IPPROTO_IP` Failed: {}".format(err))
                 try:

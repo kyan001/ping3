@@ -11,6 +11,7 @@ from ping3 import command_line  # noqa: linter (pycodestyle) should not lint thi
 from ping3 import errors  # noqa: linter (pycodestyle) should not lint this line.
 
 DEST_DOMAIN = "captive.apple.com"
+UNREACHABLE_IP = "10.255.255.1"
 
 
 class test_ping3(unittest.TestCase):
@@ -45,14 +46,13 @@ class test_ping3(unittest.TestCase):
 
     def test_timeout(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
-            command_line.main(["-t", "0.0001", DEST_DOMAIN])
-            self.assertRegex(fake_out.getvalue(), r".*Timeout \> [0-9\.]+s.*")
+            command_line.main(["-t", "1", UNREACHABLE_IP])
+            self.assertRegex(fake_out.getvalue(), r".*Timeout \> [1.0]+s.*")
 
-    @unittest.skipIf(sys.platform.startswith("win"), "Linux and macOS Only")
     def test_ttl(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
             command_line.main(["-T", "1", DEST_DOMAIN])
-            self.assertRegex(fake_out.getvalue(), r".*Error.*")
+            self.assertNotRegex(fake_out.getvalue(), r".*[0-9]+ms.*")
 
     def test_size(self):
         with patch("sys.stdout", new=io.StringIO()) as fake_out:
