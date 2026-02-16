@@ -333,6 +333,25 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         _debug("Received ICMP header:", icmp_header)
         _debug("Received ICMP payload:", icmp_payload_raw)
         if icmp_header["type"] == icmp_type.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
+            # According to RFC 792, Time Exceeded messages include the IP Header
+            # and the first 64 bits of the Datagram which is the original ICMP
+            # Header. Thus we can extract the icmp_id and seq_id from the returned
+            # Datagram ICMP Header to match the packet when the TTL expires.
+            original_icmp_header_offset = struct.calcsize(IPV4_HEADER_FORMAT if is_ipv4(sock) else IPV6_HEADER_FORMAT)
+            original_icmp_header_slice = slice(original_icmp_header_offset, original_icmp_header_offset + struct.calcsize(ICMP_HEADER_FORMAT))
+            original_icmp_header = read_icmp_header(icmp_payload_raw[original_icmp_header_slice])
+            is_icmp_id_matched = original_icmp_header["id"] == icmp_id  # ECHO_REPLY should match the ICMP ID
+            if not is_icmp_id_matched and not has_ip_header:  # When unprivileged on Linux, ICMP ID is rewrited by kernel.field.
+                icmp_id = sock.getsockname()[1]  # According to https://stackoverflow.com/a/14023878/4528364, icmp_id is the port number of the socket.
+                is_icmp_id_matched = original_icmp_header["id"] == icmp_id
+                if is_icmp_id_matched:
+                    _debug("ICMP ID rewrited by kernel: {}".format(icmp_id))
+            if not is_icmp_id_matched:
+                _debug("ICMP ID dismatch. Packet filtered out.")
+                continue
+            if original_icmp_header["seq"] != seq:  # ECHO_REPLY should match the ICMP SEQ field.
+                _debug("IMCP SEQ dismatch. Packet filtered out.")
+                continue
             if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
                 raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
             raise errors.TimeExceeded()
