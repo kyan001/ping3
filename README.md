@@ -86,7 +86,7 @@ None
 >>> ping('example.com', size=56)  # Set ICMP packet payload to 56 bytes. The total ICMP packet size is 8 (header) + 56 (payload) = 64 bytes. Default size is 56.
 0.215697261510079666
 
->>> ping('
+
 
 >>> verbose_ping('example.com')  # Ping 4 times in a row.
 ping 'example.com' ... 215ms
