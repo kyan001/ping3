@@ -10,8 +10,8 @@ Ping3 — это реализация ICMP ping на чистом Python 3 с и
 > Версия для Python 2 изначально взята [отсюда](http://github.com/samuel/python-ping).\
 > Данная версия поддерживается в [этом репозитории на GitHub](https://github.com/kyan001/ping3).
 
-[CHANGELOG](CHANGELOG.md)
-[Read in English](README.md)
+* [CHANGELOG](CHANGELOG.md)
+*  [Read in English](README.md)
 
 ## Начало работы
 
