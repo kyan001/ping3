@@ -1,4 +1,6 @@
 # Change Log
+* 5.1.6:
+    * Bug Fix: Filter out ambient `DESTINATION_UNREACHABLE` messages from unrelated processes by verifying `icmp_id` and `seq` from the embedded original datagram header. ( #94 )
 * 5.1.0：
     * Feature: Support TTL (Hop Limit) for IPv6 on Linux.
 * 5.0.0:
