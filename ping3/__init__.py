@@ -332,11 +332,11 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
         icmp_header = read_icmp_header(icmp_header_raw)
         _debug("Received ICMP header:", icmp_header)
         _debug("Received ICMP payload:", icmp_payload_raw)
-        if icmp_header["type"] == icmp_type.TIME_EXCEEDED:  # TIME_EXCEEDED has no icmp_id and icmp_seq. Usually they are 0.
-            # According to RFC 792, Time Exceeded messages include the IP Header
-            # and the first 64 bits of the Datagram which is the original ICMP
-            # Header. Thus we can extract the icmp_id and seq_id from the returned
-            # Datagram ICMP Header to match the packet when the TTL expires.
+        if icmp_header["type"] in (icmp_type.TIME_EXCEEDED, icmp_type.DESTINATION_UNREACHABLE):  # TIME_EXCEEDED and DESTINATION_UNREACHABLE have no icmp_id and icmp_seq. Usually they are 0.
+            # According to RFC 792, both Time Exceeded and Destination Unreachable
+            # messages include the IP Header and the first 64 bits of the Datagram
+            # which is the original ICMP Header. Thus we can extract the icmp_id
+            # and seq from the returned Datagram ICMP Header to match the packet.
             original_icmp_header_offset = struct.calcsize(IPV4_HEADER_FORMAT if is_ipv4(sock) else IPV6_HEADER_FORMAT)
             original_icmp_header_slice = slice(original_icmp_header_offset, original_icmp_header_offset + struct.calcsize(ICMP_HEADER_FORMAT))
             original_icmp_header = read_icmp_header(icmp_payload_raw[original_icmp_header_slice])
@@ -352,21 +352,22 @@ def receive_one_ping(sock: socket.socket, icmp_id: int, seq: int, timeout: int):
             if original_icmp_header["seq"] != seq:  # ECHO_REPLY should match the ICMP SEQ field.
                 _debug("IMCP SEQ dismatch. Packet filtered out.")
                 continue
-            if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
-                raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
-            raise errors.TimeExceeded()
-        if icmp_header["type"] == icmp_type.DESTINATION_UNREACHABLE:  # DESTINATION_UNREACHABLE has no icmp_id and icmp_seq. Usually they are 0.
-            if is_ipv4(sock):
-                if icmp_header["code"] == IcmpV4DestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
-                    raise errors.DestinationHostUnreachable(ip_header=ip_header, icmp_header=icmp_header)
-            else:
-                if icmp_header["code"] == IcmpV6DestinationUnreachableCode.ADDRESS_UNREACHABLE:
-                    raise errors.AddressUnreachable(ip_header=ip_header, icmp_header=icmp_header)
-                elif icmp_header["code"] == IcmpV6DestinationUnreachableCode.PORT_UNREACHABLE:
-                    raise errors.PortUnreachable(ip_header=ip_header, icmp_header=icmp_header)
-            raise errors.DestinationUnreachable(
-                ip_header=ip_header, icmp_header=icmp_header
-            )
+            if icmp_header["type"] == icmp_type.TIME_EXCEEDED:
+                if icmp_header["code"] == IcmpTimeExceededCode.TTL_EXPIRED:  # Windows raw socket cannot get TTL_EXPIRED. See https://stackoverflow.com/questions/43239862/socket-sock-raw-ipproto-icmp-cant-read-ttl-response.
+                    raise errors.TimeToLiveExpired(ip_header=ip_header, icmp_header=icmp_header)  # Some router does not report TTL expired and then timeout shows.
+                raise errors.TimeExceeded()
+            if icmp_header["type"] == icmp_type.DESTINATION_UNREACHABLE:
+                if is_ipv4(sock):
+                    if icmp_header["code"] == IcmpV4DestinationUnreachableCode.DESTINATION_HOST_UNREACHABLE:
+                        raise errors.DestinationHostUnreachable(ip_header=ip_header, icmp_header=icmp_header)
+                else:
+                    if icmp_header["code"] == IcmpV6DestinationUnreachableCode.ADDRESS_UNREACHABLE:
+                        raise errors.AddressUnreachable(ip_header=ip_header, icmp_header=icmp_header)
+                    elif icmp_header["code"] == IcmpV6DestinationUnreachableCode.PORT_UNREACHABLE:
+                        raise errors.PortUnreachable(ip_header=ip_header, icmp_header=icmp_header)
+                raise errors.DestinationUnreachable(
+                    ip_header=ip_header, icmp_header=icmp_header
+                )
         if icmp_header["id"]:
             if icmp_header["type"] == icmp_type.ECHO_REQUEST:  # filters out the ECHO_REQUEST itself.
                 _debug("ECHO_REQUEST received. Packet filtered out.")
