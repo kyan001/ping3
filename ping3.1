@@ -1,0 +1,67 @@
+.TH PING3 1
+.SH NAME
+ping3 \- A pure Python 3 version of the ICMP ping implementation using raw socket
+.SH SYNOPSIS
+\fBping3 [OPTION] [DEST_ADDR ...]\fR
+.SH DESCRIPTION
+A pure Python 3 version of the ICMP ping implementation using raw socket.
+
+This package provides a \fBping3\fR executable and a Python 3 module. This manual page is for the executable, see \fI/usr/share/doc/ping3/README\fP for information on how to use the module.
+
+Usually only processes running as \fBroot\fR can create raw sockets. See \fI/usr/share/doc/ping3/TROUBLESHOOTING.md\fP to be able to use \fBping3\fR without root privileges.
+
+.TP
+\fBDEST_ADDR\fR
+The destination address can be an IP address or a domain name. Ex. 192.168.1.1 or example.com
+
+.TP
+\fB-c COUNT, --count COUNT\fR
+Number of pings to be sent. Default is 4.
+
+.TP
+\fB-t TIMEOUT, --timeout TIMEOUT\fR
+Time to wait for a response, in seconds. Default is 4.
+
+.TP
+\fB-i INTERNAL, --interval INTERVAL\fR
+Time to wait between each packet, in seconds. Default is 0.
+
+.TP
+\fB-I INTERFACE, --interface INTERFACE\fR
+LINUX ONLY. The gateway network interface to ping from. Default is None.
+
+.TP
+\fB-S SRC_ADDR, --src SRC_ADDR\fR
+The IP address to ping from. This is for multiple network interfaces. Default is None.
+
+.TP
+\fB-T TTL, --ttl TTL\fR
+The Time-To-Live of the outgoing packet. Default is 64.
+
+.TP
+\fB-s SIZE, --size SIZE\fR
+The ICMP packet payload size in bytes. Default is 56.
+
+.TP
+\fB-D, --debug\fR
+Turn on DEBUG mode.
+
+.TP
+\fB-E, --exceptions\fR
+Turn on EXCEPTIONS mode.
+
+.TP
+\fB-h, --help\fR
+Show help message and exit.
+
+.TP
+\fB-v, --version\fR
+Show program's version number and exit.
+
+.SH AUTHOR
+This manual page was written by Carles Pina i Estany <carles@pina.cat> for the \fBDebian\fR system (but may be used by others). Permission is granted to copy, distribute and/or modify this document under the terms of the GNU General Public License, Version 3 any later version published by the Free Software Foundation.
+
+.SH SEE ALSO
+ping(8)
+
+Full documentation in \fI/usr/share/doc/python-ping3/README.md\fP
