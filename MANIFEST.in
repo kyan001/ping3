@@ -1,0 +1,6 @@
+include LICENSE
+include README.md
+exclude CHANGELOG.md
+exclude TROUBLESHOOTING.md
+include python3-ping3.spec
+recursive-include tests *.py

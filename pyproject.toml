@@ -8,7 +8,7 @@ description = "A pure python3 version of ICMP ping implementation using raw sock
 requires-python = ">=3.5"
 readme = "README.md"
 keywords = ["python3", "ping", "icmp", "socket", "tool"]
-license = "MIT"
+license = { text = "MIT" }
 classifiers = [
     "Development Status :: 5 - Production/Stable",
     "Intended Audience :: Developers",
@@ -36,11 +36,8 @@ Changelog = "https://github.com/kyan001/ping3/blob/master/CHANGELOG.md"
 [project.scripts]
 ping3 = "ping3.command_line:main"
 
-[tool.setuptools]
-py-modules = ["ping3"]
-
 [tool.setuptools.dynamic]
 version = {attr = "ping3.__version__"}
 
 [tool.setuptools.packages.find]
-exclude = ["contrib", "docs", "tests"]
+include = ["ping3"]
