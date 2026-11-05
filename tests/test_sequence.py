@@ -48,7 +48,7 @@ class EchoSocket:
             if self.response == "unreachable":
                 original_ip = bytes(20 if self.family == socket.AF_INET else 40)
                 reply = struct.pack(ping3.ICMP_HEADER_FORMAT, icmp_type.DESTINATION_UNREACHABLE, 0, 0, 0, 0) + original_ip + struct.pack(ping3.ICMP_HEADER_FORMAT, icmp_type.ECHO_REQUEST, 0, 0, header["id"], seq)
-            if self.family == socket.AF_INET and self.type == socket.SOCK_RAW:
+            if self.family == socket.AF_INET and (os.name != "posix" or ping3.platform.system() == "Darwin" or self.type == socket.SOCK_RAW):
                 reply = struct.pack(ping3.IPV4_HEADER_FORMAT, 0x45, 0, 20 + len(reply), 0, 0, 64, socket.IPPROTO_ICMP, 0, 0x7f000001, 0x7f000001) + reply
             self.writer.send(reply)
         return len(packet)
@@ -81,10 +81,11 @@ class SequenceTests(unittest.TestCase):
         for seq in (0, 65535, 65536, 65537, 2 ** 64 + 17):
             for family in (socket.AF_INET, socket.AF_INET6):
                 for sock_type in (socket.SOCK_RAW, socket.SOCK_DGRAM):
-                    with self.subTest(seq=seq, family=family, sock_type=sock_type):
-                        result, header = self.ping_with_socket(seq, family, sock_type)
-                        self.assertIsInstance(result, float)
-                        self.assertEqual(header["seq"], seq % 65536)
+                    for system in ("Linux", "Darwin"):
+                        with self.subTest(seq=seq, family=family, sock_type=sock_type, system=system), patch("ping3.platform.system", return_value=system):
+                            result, header = self.ping_with_socket(seq, family, sock_type)
+                            self.assertIsInstance(result, float)
+                            self.assertEqual(header["seq"], seq % 65536)
 
     def test_negative_sequence_remains_invalid(self):
         with self.assertRaises(struct.error):
@@ -93,9 +94,10 @@ class SequenceTests(unittest.TestCase):
     def test_wrapped_sequence_matches_quoted_errors(self):
         for family in (socket.AF_INET, socket.AF_INET6):
             for sock_type in (socket.SOCK_RAW, socket.SOCK_DGRAM):
-                with self.subTest(family=family, sock_type=sock_type):
-                    with self.assertRaises(ping3.errors.DestinationUnreachable):
-                        self.ping_with_socket(65536, family, sock_type, "unreachable")
+                for system in ("Linux", "Darwin"):
+                    with self.subTest(family=family, sock_type=sock_type, system=system), patch("ping3.platform.system", return_value=system):
+                        with self.assertRaises(ping3.errors.DestinationUnreachable):
+                            self.ping_with_socket(65536, family, sock_type, "unreachable")
 
     def test_verbose_ping_continues_after_sequence_wrap(self):
         # Reach the boundary without emitting 65,536 preceding packets.
