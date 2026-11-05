@@ -403,7 +403,7 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
         unit (str): The unit of returned value. "s" for seconds, "ms" for milliseconds. (default "s")
         src_addr (str): The IP address to ping from. This is for multiple network interfaces. Ex. "192.168.1.20". (default "")
         ttl (int | None): The Time-To-Live of the outgoing packet. Default is None, which means using OS default ttl -- 64 onLinux and macOS, and 128 on Windows. (default None)
-        seq (int): ICMP packet sequence, usually increases from 0 in the same process. (default 0)
+        seq (int): ICMP packet sequence. Values above 65535 wrap modulo 65536 to fit its 16-bit field. (default 0)
         size (int): The ICMP packet payload size in bytes. If the input of this is less than the bytes of a double format (usually 8), the size of ICMP packet payload is 8 bytes to hold a time. The max should be the router_MTU(Usually 1480) - IP_Header(20) - ICMP_Header(8). Default is 56, same as in macOS. (default 56)
         interface (str): LINUX ONLY. The gateway network interface to ping from. Ex. "wlan0". (default "")
         ip_v (int | None): The IP version to use. 4 for IPv4, 6 for IPv6. If None, the function will try to determine the IP version from `dest_addr`. (default None)
@@ -414,6 +414,8 @@ def ping(dest_addr: str, timeout: int = 4, unit: str = "s", src_addr: str = "", 
     Raises:
         PingError: Any PingError will raise again if `ping3.EXCEPTIONS` is True.
     """
+    if seq > 65535:
+        seq %= 65536  # Use the same 16-bit sequence for sending and reply matching.
     if version is None:  # Auto detect IP version if not specified.
         try:
             ip = ipaddress.ip_address(dest_addr)

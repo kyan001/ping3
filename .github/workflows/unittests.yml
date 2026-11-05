@@ -13,6 +13,7 @@ jobs:
           python-version: '3.x'
       - name: Echo Python Version
         run: python --version
+      - run: python tests/test_sequence.py  # packet fixtures, no ICMP privileges needed
       - run: sudo python tests/test_ping3.py  # privileged
       - run: python tests/test_ping3.py  # unprivileged
   ping3-test-command-line:
