@@ -28,6 +28,8 @@ def main(assigned_args = None) -> None:
     parser.add_argument("-4", "--ipv4", action="store_true", dest="ipv4", help="Force ping an IPv4 address. Default is None for auto-detect.")
     parser.add_argument("-6", "--ipv6", action="store_true", dest="ipv6", help="Force ping an IPv6 address. Default is None for auto-detect.")
     args = parser.parse_args(assigned_args)
+    if args.count < 0:
+        parser.error("argument -c/--count: must be >= 0 (0 means infinite)")
     ping3.DEBUG = args.debug
     ping3.EXCEPTIONS = args.exceptions
     if args.ipv4:
